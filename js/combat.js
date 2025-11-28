@@ -142,10 +142,13 @@ const CombatSystem = {
 
         window.Game.renderEvent(
             `⚔️ 遭遇 ${enemy.name}`,
-            `HP: ${enemy.hp} | 攻擊: ${enemy.atk}`,
+            ``,
             "準備戰鬥！",
             enemy.icon
         );
+
+        // 顯示敵人血條
+        this.showEnemyHealthBar(enemy);
     },
 
     combatRound() {
@@ -175,6 +178,9 @@ const CombatSystem = {
             logHtml,
             enemy.icon
         );
+
+        // 更新敵人血條
+        this.updateEnemyHealthBar(enemy);
 
         if (window.Player.hp <= 0) {
             window.Game.playerDie(`被 ${enemy.name} 殺死`);
@@ -354,6 +360,9 @@ const CombatSystem = {
     combatWin() {
         const enemy = window.GameState.currentEnemy;
         window.GameState.phase = "event_end";
+
+        // 隱藏敵人血條
+        this.hideEnemyHealthBar();
 
         if (window.Player.depth === 1000 && enemy.tier === 'boss') {
             window.Player.kill1000Boss = true;
@@ -556,6 +565,62 @@ const CombatSystem = {
                 window.Game.setButtons("戰鬥", "combatRound", "逃跑", "flee", false);
                 window.Game.updateUI();
             }
+        }
+    },
+
+    /**
+     * 顯示敵人血條
+     */
+    showEnemyHealthBar(enemy) {
+        const eventDisplay = document.getElementById('event-display');
+
+        // 檢查是否已存在敵人血條容器
+        let container = document.getElementById('enemy-health-container');
+        if (!container) {
+            container = document.createElement('div');
+            container.id = 'enemy-health-container';
+            container.innerHTML = `
+                <div id="enemy-health-label"></div>
+                <div class="health-bar-container">
+                    <div class="health-bar" id="enemy-health-bar" style="width: 100%;"></div>
+                </div>
+            `;
+            eventDisplay.appendChild(container);
+        }
+
+        this.updateEnemyHealthBar(enemy);
+    },
+
+    /**
+     * 更新敵人血條
+     */
+    updateEnemyHealthBar(enemy) {
+        const healthBar = document.getElementById('enemy-health-bar');
+        const healthLabel = document.getElementById('enemy-health-label');
+
+        if (!healthBar || !healthLabel) return;
+
+        const healthPercent = enemy.maxHp > 0 ? (enemy.hp / enemy.maxHp) * 100 : 0;
+        healthBar.style.width = Math.max(0, healthPercent) + '%';
+
+        // 根據血量百分比改變血條顏色
+        healthBar.className = 'health-bar';
+        if (healthPercent <= 30) {
+            healthBar.classList.add('low');
+        } else if (healthPercent <= 50) {
+            healthBar.classList.add('medium');
+        }
+
+        healthLabel.textContent = `${enemy.name} | HP: ${Math.max(0, enemy.hp)} / ${enemy.maxHp} | 攻擊: ${enemy.atk}`;
+    },
+
+    /**
+     * 隱藏敵人血條
+     */
+    hideEnemyHealthBar() {
+        const container = document.getElementById('enemy-health-container');
+        if (container) {
+            container.remove();
         }
     }
 };

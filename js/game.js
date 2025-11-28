@@ -44,7 +44,12 @@ const GameState = {
     merchantStock: [],
     blacksmithAttempts: 0,
     log: [],
-    isLoading: false
+    isLoading: false,
+    inventorySortPreference: {
+        equipment: 'default',  // 'default', 'rarity', 'type'
+        consumable: 'default',
+        material: 'default'
+    }
 };
 
 // ========== 主遊戲對象 ==========
@@ -54,11 +59,49 @@ const Game = {
      * 初始化遊戲
      */
     init() {
+        // 載入永久數據（成就、圖鑑）
+        this.loadPersistentData();
+
         // 自動檢查存檔
         if (localStorage.getItem('fantasy_adventure_save')) {
             this.loadGame();
         } else {
             this.updateUI();
+        }
+    },
+
+    // ========== 永久數據系統 ==========
+
+    /**
+     * 保存永久數據（成就、圖鑑）
+     */
+    savePersistentData() {
+        try {
+            const persistentData = {
+                achievements: Array.from(Player.achievements),
+                history: {
+                    items: Array.from(Player.history.items)
+                }
+            };
+            localStorage.setItem('fantasy_adventure_persistent', JSON.stringify(persistentData));
+        } catch (e) {
+            console.error("Persistent data save failed", e);
+        }
+    },
+
+    /**
+     * 載入永久數據（成就、圖鑑）
+     */
+    loadPersistentData() {
+        try {
+            const raw = localStorage.getItem('fantasy_adventure_persistent');
+            if (raw) {
+                const data = JSON.parse(raw);
+                Player.achievements = new Set(data.achievements || []);
+                Player.history.items = new Set(data.history?.items || []);
+            }
+        } catch (e) {
+            console.error("Persistent data load failed", e);
         }
     },
 
@@ -88,6 +131,9 @@ const Game = {
             };
             const encrypted = btoa(encodeURIComponent(JSON.stringify(saveData)));
             localStorage.setItem('fantasy_adventure_save', encrypted);
+
+            // 同時保存永久數據
+            this.savePersistentData();
         } catch (e) {
             console.error("Auto-save failed", e);
         }
@@ -256,13 +302,6 @@ const Game = {
             alert("警告：你已進入深層領域！所有怪物實力大幅增強！");
         }
 
-        // 跌倒事件 (深度100後0.5%機率)
-        if (Player.depth > 100 && Math.random() < 0.005) {
-            EventSystem.triggerTrip();
-            this.updateUI();
-            return;
-        }
-
         // 哈比事件 (深度200後1%機率)
         if (Player.depth > 200 && Math.random() < 0.01) {
             EventSystem.triggerHarpy();
@@ -270,8 +309,8 @@ const Game = {
             return;
         }
 
-        // 賭場事件 (深度100後0.5%機率)
-        if (Player.depth > 100 && Math.random() < 0.005) {
+        // 賭場事件 (深度100後1%機率，每100層必定觸發)
+        if (Player.depth > 100 && (Player.depth % 100 === 0 || Math.random() < 0.01)) {
             EventSystem.triggerCasino();
             this.updateUI();
             return;
@@ -701,7 +740,10 @@ const Game = {
                 }
             }
         });
-        if (newUnlock) this.checkAchievements();
+        if (newUnlock) {
+            this.savePersistentData(); // 保存成就
+            this.checkAchievements();
+        }
     },
 
     checkDrops(type) {
@@ -778,18 +820,29 @@ const Game = {
     // ========== 輔助函數 ==========
 
     /**
-     * 獲取攻擊力
+     * 獲取攻擊力（詳細版）
      */
-    getAtk() {
-        let atk = Player.baseAtk;
-        if (Player.equipment.weapon) atk += Player.equipment.weapon.val;
+    getAtkDetail() {
+        let baseAtk = Player.baseAtk;
+        if (Player.equipment.weapon) baseAtk += Player.equipment.weapon.val;
+
+        let totalAtk = baseAtk;
+        let bonusAtk = 0;
 
         // 應用詞綴加成
         if (this.modifiers && this.modifiers.atk) {
-            atk = Math.floor(atk * (1 + this.modifiers.atk));
+            totalAtk = Math.floor(baseAtk * (1 + this.modifiers.atk));
+            bonusAtk = totalAtk - baseAtk;
         }
 
-        return atk;
+        return { base: baseAtk, bonus: bonusAtk, total: totalAtk };
+    },
+
+    /**
+     * 獲取攻擊力（總值）
+     */
+    getAtk() {
+        return this.getAtkDetail().total;
     },
     /**
      * 計算詞綴加成

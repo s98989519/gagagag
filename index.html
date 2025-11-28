@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="zh-TW">
 
 <head>
@@ -108,6 +108,7 @@
 
     <!-- 主遊戲容器 -->
     <div id="game-container">
+        <div id="low-health-overlay" class="low-health-overlay hidden"></div>
         <header>
             <div style="display:flex; align-items:center; gap:10px;">
                 <div style="font-weight: bold; font-size: 1.2em;">⚔️ 幻想冒險</div>
@@ -121,7 +122,12 @@
         </header>
 
         <div class="stats-grid">
-            <div class="stat-item">生命: <span id="hp-val">100</span> / <span id="max-hp-val">100</span></div>
+            <div class="stat-item">
+                生命: <span id="hp-val">100</span> / <span id="max-hp-val">100</span>
+                <div class="health-bar-container">
+                    <div class="health-bar" id="player-health-bar" style="width: 100%;"></div>
+                </div>
+            </div>
             <div class="stat-item">攻擊: <span id="atk-val">5</span></div>
             <div class="stat-item">金幣: <span id="gold-val">100</span></div>
             <div class="stat-item">深度: <span id="depth-val">0</span> 層</div>
@@ -149,7 +155,7 @@
 
             <div class="inv-container">
                 <div class="inv-col">
-                    <h4>📦 裝備</h4>
+                    <h4>📦 裝備 <button class="sort-btn" id="sort-equip-rarity" onclick="UISystem.toggleSort('equipment', 'rarity')">🔽稀有度</button><button class="sort-btn" id="sort-equip-type" onclick="UISystem.toggleSort('equipment', 'type')">🔽類型</button></h4>
                     <div class="item-list" id="inv-equip"></div>
                 </div>
                 <div class="inv-col">
@@ -177,6 +183,10 @@
     <script src="js/events.js"></script>
     <script src="js/ui.js"></script>
     <script src="js/game.js"></script>
+    <div id="legendary-effect" class="legendary-effect hidden">
+        <div class="legendary-beam"></div>
+        <div class="legendary-text">傳說！</div>
+    </div>
 </body>
 
 </html>

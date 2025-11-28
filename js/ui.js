@@ -1,4 +1,4 @@
-/**
+﻿/**
  * 幻想冒險 - UI渲染系統模組
  * 處理所有UI更新和渲染邏輯
  * @版本 v2.0
@@ -19,7 +19,7 @@ const UISystem = {
     },
 
     /**
-     * 顯示浮動文字
+     * 顯示浮動文字（支援位置分離）
      */
     showFloatingText(text, color) {
         const display = document.getElementById('event-display');
@@ -27,6 +27,21 @@ const UISystem = {
         div.className = 'floating-text';
         div.innerHTML = text;
         div.style.color = color;
+
+        // 確保 text 是字符串類型
+        const textStr = String(text);
+
+        // 根據內容類型設置不同的水平位置
+        let offsetX = 0;
+        if (textStr.includes('HP') || textStr.includes('DMG') || (textStr.includes('-') && !textStr.includes('G'))) {
+            offsetX = -60; // 傷害/治療 - 偏左
+        } else if (textStr.includes('G') || textStr.includes('金')) {
+            offsetX = 60; // 金幣 - 偏右
+        } else {
+            div.style.marginTop = '-20px'; // 其他 - 中間偏上
+        }
+        div.style.marginLeft = offsetX + 'px';
+
         display.appendChild(div);
         setTimeout(() => div.remove(), 1000);
     },
@@ -84,7 +99,14 @@ const UISystem = {
         const player = window.Player;
         document.getElementById('hp-val').innerText = player.hp;
         document.getElementById('max-hp-val').innerText = player.maxHp;
-        document.getElementById('atk-val').innerText = window.Game.getAtk();
+
+        // 顯示攻擊力（含加成）
+        const atkDetail = window.Game.getAtkDetail();
+        const atkText = atkDetail.bonus > 0
+            ? `${atkDetail.total} (+${atkDetail.bonus})`
+            : `${atkDetail.total}`;
+        document.getElementById('atk-val').innerText = atkText;
+
         document.getElementById('gold-val').innerText = player.gold;
         document.getElementById('depth-val').innerText = player.depth;
 

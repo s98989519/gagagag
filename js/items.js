@@ -130,6 +130,7 @@ const ItemSystem = {
      * @param {boolean} render - 是否立即渲染UI
      */
     addItemToInventory(item, render = true) {
+        const isNewItem = !window.Player.history.items.has(item.name);
         window.Player.history.items.add(item.name);
 
         if (['weapon', 'armor', 'shield'].includes(item.type)) {
@@ -138,6 +139,17 @@ const ItemSystem = {
             window.Player.inventory.consumable.push(item);
         } else {
             window.Player.inventory.material.push(item);
+        }
+
+        // 如果是新物品
+        if (isNewItem && window.Game) {
+            // 保存圖鑑
+            window.Game.savePersistentData();
+
+            // 傳說物品特效觸發（只在第一次獲得時）
+            if (['legendary', 'mythic', 'ultra'].includes(item.rarity) && window.UISystem) {
+                window.UISystem.showLegendaryEffect();
+            }
         }
 
         if (render) window.Game.updateUI();
@@ -294,16 +306,53 @@ const ItemSystem = {
     },
 
     /**
-     * 獲取物品描述
+     * 獲取物品描述（含裝備比較）
      * @param {Object} item - 物品對象
      */
     getItemDesc(item) {
-        if (item.desc) return item.desc;
-        if (item.type === 'weapon') return `攻擊力 +${item.val}`;
-        if (item.type === 'armor') return `生命上限 +${item.val}`;
-        if (item.type === 'shield') return `抵擋 ${item.val} 次攻擊`;
-        if (item.type === 'loot') return `戰利品 (可高價出售)`;
-        return "未知物品";
+        let baseDesc = '';
+
+        if (item.desc) {
+            baseDesc = item.desc;
+        } else if (item.type === 'weapon') {
+            baseDesc = `攻擊力 +${item.val}`;
+        } else if (item.type === 'armor') {
+            baseDesc = `生命上限 +${item.val}`;
+        } else if (item.type === 'shield') {
+            baseDesc = `抵擋 ${item.val} 次攻擊`;
+        } else if (item.type === 'loot') {
+            baseDesc = `戰利品 (可高價出售)`;
+        } else {
+            baseDesc = "未知物品";
+        }
+
+        // 添加裝備比較（僅在背包查看時顯示，非商店）
+        if (['weapon', 'armor', 'shield'].includes(item.type) && window.GameState.phase !== 'merchant') {
+            const comparison = this.getEquipmentComparison(item);
+            if (comparison) {
+                baseDesc += ` ${comparison}`;
+            }
+        }
+
+        return baseDesc;
+    },
+
+    /**
+     * 獲取裝備比較文字
+     * @param {Object} newItem - 新物品
+     */
+    getEquipmentComparison(newItem) {
+        const currentEquip = window.Player.equipment[newItem.type];
+        if (!currentEquip) return '';
+
+        const diff = newItem.val - currentEquip.val;
+        if (diff === 0) {
+            return '(=)';
+        } else if (diff > 0) {
+            return `(+${diff})`;
+        } else {
+            return `(${diff})`;
+        }
     },
 
     /**
