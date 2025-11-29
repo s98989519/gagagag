@@ -142,7 +142,7 @@ const CombatSystem = {
 
         window.Game.renderEvent(
             `⚔️ 遭遇 ${enemy.name}`,
-            ``,
+            `HP: ${enemy.hp} | 攻擊: ${enemy.atk}`,
             "準備戰鬥！",
             enemy.icon
         );
@@ -611,7 +611,7 @@ const CombatSystem = {
             healthBar.classList.add('medium');
         }
 
-        healthLabel.textContent = `${enemy.name} | HP: ${Math.max(0, enemy.hp)} / ${enemy.maxHp} | 攻擊: ${enemy.atk}`;
+        healthLabel.textContent = `${enemy.name}: ${Math.max(0, enemy.hp)} / ${enemy.maxHp}`;
     },
 
     /**

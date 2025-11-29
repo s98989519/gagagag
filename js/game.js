@@ -27,6 +27,9 @@ const Player = {
     achievements: new Set(),
     history: { items: new Set() },
     kill1000Boss: false,
+    // 神廟永久加成
+    templeAtkBonus: 0,  // 神廟給的永久攻擊力加成
+    templeHpBonus: 0,   // 神廟給的永久生命上限加成
     // 賭場系統
     luckPoints: 0,  // 幸運值（失敗累積）
     casinoStats: {
@@ -235,7 +238,9 @@ const Game = {
      */
     selectClass(classType) {
         Player.class = classType;
-        document.getElementById('class-modal').style.display = 'none';
+        const modal = document.getElementById('class-modal');
+        modal.style.display = 'none';
+        modal.classList.add('hidden'); // 強制隱藏
 
         if (classType === 'knight') {
             const lance = { name: "騎士長槍", type: "weapon", val: 12, rarity: "uncommon", price: 80, icon: "🔱" };
@@ -820,29 +825,21 @@ const Game = {
     // ========== 輔助函數 ==========
 
     /**
-     * 獲取攻擊力（詳細版）
+     * 獲取攻擊力
      */
-    getAtkDetail() {
-        let baseAtk = Player.baseAtk;
-        if (Player.equipment.weapon) baseAtk += Player.equipment.weapon.val;
-
-        let totalAtk = baseAtk;
-        let bonusAtk = 0;
+    getAtk() {
+        let atk = Player.baseAtk;
+        if (Player.equipment.weapon) atk += Player.equipment.weapon.val;
 
         // 應用詞綴加成
         if (this.modifiers && this.modifiers.atk) {
-            totalAtk = Math.floor(baseAtk * (1 + this.modifiers.atk));
-            bonusAtk = totalAtk - baseAtk;
+            atk = Math.floor(atk * (1 + this.modifiers.atk));
         }
 
-        return { base: baseAtk, bonus: bonusAtk, total: totalAtk };
-    },
+        // 最後加上神廟給的永久攻擊力加成
+        atk += (Player.templeAtkBonus || 0);
 
-    /**
-     * 獲取攻擊力（總值）
-     */
-    getAtk() {
-        return this.getAtkDetail().total;
+        return atk;
     },
     /**
      * 計算詞綴加成
@@ -896,6 +893,9 @@ const Game = {
         if (this.modifiers && this.modifiers.hp) {
             newMaxHp = Math.floor(newMaxHp * (1 + this.modifiers.hp));
         }
+
+        // 最後加上神廟給的永久生命加成
+        newMaxHp += (Player.templeHpBonus || 0);
 
         Player.maxHp = newMaxHp;
         let newHp = Math.round(currentRatio * Player.maxHp);

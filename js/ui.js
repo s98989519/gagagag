@@ -1,8 +1,8 @@
-﻿/**
+/**
  * 幻想冒險 - UI渲染系統模組
  * 處理所有UI更新和渲染邏輯
- * @版本 v2.0
- * @更新 2025-11-27
+ * @版本 v2.1
+ * @更新 2025-11-29
  */
 
 const UISystem = {
@@ -19,7 +19,7 @@ const UISystem = {
     },
 
     /**
-     * 顯示浮動文字（支援位置分離）
+     * 顯示浮動文字（隨機分散顯示，避免重疊）
      */
     showFloatingText(text, color) {
         const display = document.getElementById('event-display');
@@ -28,22 +28,20 @@ const UISystem = {
         div.innerHTML = text;
         div.style.color = color;
 
-        // 確保 text 是字符串類型
-        const textStr = String(text);
+        // 隨機選擇水平位置：左(25%)、中(50%)、右(75%)
+        const positions = ['25%', '50%', '75%'];
+        const randomPos = positions[Math.floor(Math.random() * positions.length)];
+        div.style.left = randomPos;
 
-        // 根據內容類型設置不同的水平位置
-        let offsetX = 0;
-        if (textStr.includes('HP') || textStr.includes('DMG') || (textStr.includes('-') && !textStr.includes('G'))) {
-            offsetX = -60; // 傷害/治療 - 偏左
-        } else if (textStr.includes('G') || textStr.includes('金')) {
-            offsetX = 60; // 金幣 - 偏右
-        } else {
-            div.style.marginTop = '-20px'; // 其他 - 中間偏上
-        }
-        div.style.marginLeft = offsetX + 'px';
+        // 隨機垂直起始位置，避免重疊 (30%-60%)
+        const randomTop = 30 + Math.random() * 30;
+        div.style.top = `${randomTop}%`;
 
         display.appendChild(div);
-        setTimeout(() => div.remove(), 1000);
+
+        setTimeout(() => {
+            div.remove();
+        }, 1000);
     },
 
     /**
@@ -99,16 +97,30 @@ const UISystem = {
         const player = window.Player;
         document.getElementById('hp-val').innerText = player.hp;
         document.getElementById('max-hp-val').innerText = player.maxHp;
-
-        // 顯示攻擊力（含加成）
-        const atkDetail = window.Game.getAtkDetail();
-        const atkText = atkDetail.bonus > 0
-            ? `${atkDetail.total} (+${atkDetail.bonus})`
-            : `${atkDetail.total}`;
-        document.getElementById('atk-val').innerText = atkText;
-
+        document.getElementById('atk-val').innerText = window.Game.getAtk();
         document.getElementById('gold-val').innerText = player.gold;
         document.getElementById('depth-val').innerText = player.depth;
+
+        // 更新玩家血條
+        const healthBar = document.getElementById('player-health-bar');
+        const healthPercent = player.maxHp > 0 ? (player.hp / player.maxHp) * 100 : 0;
+        healthBar.style.width = healthPercent + '%';
+
+        // 根據血量百分比改變血條顏色
+        healthBar.className = 'health-bar';
+        if (healthPercent <= 30) {
+            healthBar.classList.add('low');
+        } else if (healthPercent <= 50) {
+            healthBar.classList.add('medium');
+        }
+
+        // 控制低血量覆蓋層
+        const lowHealthOverlay = document.getElementById('low-health-overlay');
+        if (healthPercent <= 30 && player.hp > 0) {
+            lowHealthOverlay.classList.remove('hidden');
+        } else {
+            lowHealthOverlay.classList.add('hidden');
+        }
 
         const buffEl = document.getElementById('buff-display');
         if (player.buff) {
@@ -149,16 +161,50 @@ const UISystem = {
     renderInvList(id, items, category) {
         const list = document.getElementById(id);
         list.innerHTML = "";
-        items.forEach((item, idx) => {
-            const div = document.createElement('div');
-            div.className = `item ${CONFIG.rarityDisplay[item.rarity].color}`;
-            if (item.rarity === 'epic') div.classList.add('rare-epic');
-            if (item.rarity === 'legendary') div.classList.add('rare-legendary');
-            if (item.rarity === 'mythic') div.classList.add('rarity-mythic');
-            div.innerHTML = `${item.icon || '📦'} ${item.name}`;
-            div.onclick = () => window.ItemSystem.handleItemClick(idx, category);
-            list.appendChild(div);
-        });
+
+        // 裝備不堆疊，其他類別堆疊顯示
+        if (category === 'equipment') {
+            items.forEach((item) => {
+                this.createItemElement(list, item, category, false);
+            });
+        } else {
+            // 堆疊邏輯
+            const groups = {};
+            items.forEach(item => {
+                if (!groups[item.name]) {
+                    groups[item.name] = { item: item, count: 0 };
+                }
+                groups[item.name].count++;
+            });
+
+            Object.values(groups).forEach(group => {
+                this.createItemElement(list, group.item, category, true, group.count);
+            });
+        }
+    },
+
+    /**
+     * 創建物品元素（輔助函數）
+     */
+    createItemElement(container, item, category, isStacked, count = 1) {
+        const div = document.createElement('div');
+        div.className = `item ${CONFIG.rarityDisplay[item.rarity].color}`;
+        if (item.rarity === 'epic') div.classList.add('rare-epic');
+        if (item.rarity === 'legendary') div.classList.add('rare-legendary');
+        if (item.rarity === 'mythic') div.classList.add('rarity-mythic');
+
+        const countText = (isStacked && count > 1) ? ` x${count}` : '';
+        div.innerHTML = `${item.icon || '📦'} ${item.name}${countText}`;
+
+        div.onclick = () => {
+            const originalArray = window.Player.inventory[category];
+            const originalIndex = originalArray.findIndex(originalItem => originalItem === item);
+            if (originalIndex !== -1) {
+                window.ItemSystem.handleItemClick(originalIndex, category);
+            }
+        };
+
+        container.appendChild(div);
     },
 
     /**
@@ -166,9 +212,123 @@ const UISystem = {
      */
     updateInventoryUI() {
         const player = window.Player;
-        this.renderInvList('inv-equip', player.inventory.equipment, 'equipment');
+        const sortPref = window.GameState.inventorySortPreference;
+
+        // 排序並渲染裝備背包
+        const sortedEquip = this.sortInventory(player.inventory.equipment, sortPref.equipment);
+        this.renderInvList('inv-equip', sortedEquip, 'equipment');
+
+        // 更新排序按鈕狀態
+        this.updateSortButtons('equipment', sortPref.equipment);
+
         this.renderInvList('inv-consum', player.inventory.consumable, 'consumable');
         this.renderInvList('inv-mat', player.inventory.material, 'material');
+    },
+
+    /**
+     * 排序背包物品
+     */
+    sortInventory(items, sortType) {
+        if (!items || items.length === 0) return items;
+
+        const sorted = [...items]; // 創建副本避免修改原陣列
+
+        if (sortType === 'rarity') {
+            // 按稀有度排序（從高到低）
+            const rarityOrder = {
+                'ultra': 7,
+                'mythic': 6,
+                'legendary': 5,
+                'epic': 4,
+                'rare': 3,
+                'uncommon': 2,
+                'common': 1
+            };
+            sorted.sort((a, b) => {
+                const rarityDiff = (rarityOrder[b.rarity] || 0) - (rarityOrder[a.rarity] || 0);
+                if (rarityDiff !== 0) return rarityDiff;
+                // 稀有度相同時按名稱排序
+                return a.name.localeCompare(b.name);
+            });
+        } else if (sortType === 'type') {
+            // 按類型排序（武器 > 防具 > 盾牌）
+            const typeOrder = { 'weapon': 1, 'armor': 2, 'shield': 3 };
+            sorted.sort((a, b) => {
+                const typeDiff = (typeOrder[a.type] || 99) - (typeOrder[b.type] || 99);
+                if (typeDiff !== 0) return typeDiff;
+                // 類型相同時按名稱排序
+                return a.name.localeCompare(b.name);
+            });
+        }
+
+        return sorted;
+    },
+
+    /**
+     * 切換排序方式
+     */
+    toggleSort(category, sortType) {
+        const currentSort = window.GameState.inventorySortPreference[category];
+
+        // 如果點擊已選中的排序方式，切換回預設
+        if (currentSort === sortType) {
+            window.GameState.inventorySortPreference[category] = 'default';
+        } else {
+            window.GameState.inventorySortPreference[category] = sortType;
+        }
+
+        // 儲存偏好並更新UI
+        window.Game.saveGame();
+        this.updateInventoryUI();
+    },
+
+    /**
+     * 更新排序按鈕狀態
+     */
+    updateSortButtons(category, activeSort) {
+        const rarityBtn = document.getElementById(`sort-${category}-rarity`);
+        const typeBtn = document.getElementById(`sort-${category}-type`);
+
+        if (rarityBtn) {
+            rarityBtn.classList.toggle('active', activeSort === 'rarity');
+        }
+        if (typeBtn) {
+            typeBtn.classList.toggle('active', activeSort === 'type');
+        }
+    },
+
+    /**
+     * 顯示確認模態框
+     * @param {string} title - 標題
+     * @param {string} message - 訊息內容
+     * @param {Function} onConfirm - 確認回調
+     */
+    showConfirmModal(title, message, onConfirm) {
+        const modal = document.getElementById('confirm-modal');
+        const titleEl = document.getElementById('confirm-title');
+        const msgEl = document.getElementById('confirm-message');
+        const yesBtn = document.getElementById('confirm-yes-btn');
+
+        titleEl.textContent = title;
+        msgEl.innerHTML = message;
+
+        // 清除舊的事件監聽器
+        const newYesBtn = yesBtn.cloneNode(true);
+        yesBtn.parentNode.replaceChild(newYesBtn, yesBtn);
+
+        newYesBtn.onclick = () => {
+            onConfirm();
+            this.hideConfirmModal();
+        };
+
+        modal.classList.remove('hidden');
+    },
+
+    /**
+     * 隱藏確認模態框
+     */
+    hideConfirmModal() {
+        document.getElementById('confirm-modal').classList.add('hidden');
     },
 
     /**
@@ -333,6 +493,19 @@ const UISystem = {
             }
             list.appendChild(div);
         });
+    },
+
+    /**
+     * 顯示傳說物品特效
+     */
+    showLegendaryEffect() {
+        const effect = document.getElementById('legendary-effect');
+        effect.classList.remove('hidden');
+
+        // 2秒後自動隱藏
+        setTimeout(() => {
+            effect.classList.add('hidden');
+        }, 2000);
     }
 };
 

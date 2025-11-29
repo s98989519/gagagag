@@ -5,11 +5,8 @@
  * @更新 2025-11-27
  */
 
-const ItemSystem = {
-    /**
-     * 生成隨機物品
-     * @param {string} tierModifier - 等級修正（normal/elite/boss）
-     */
+console.log('Loading items.js...');
+var ItemSystem = {
     /**
      * 生成隨機物品
      * @param {string} tierModifier - 等級修正（normal/elite/boss）
@@ -258,14 +255,18 @@ const ItemSystem = {
             }
         }
 
-        if (confirm(`確定要以 ${price} G 出售 ${item.name} 嗎？`)) {
-            window.Player.inventory[category].splice(index, 1);
-            window.Player.gold += price;
-            AudioSystem.playSFX('coin');  // 出售獲得金幣音效
-            window.Game.showFloatingText("+ " + price + " G", "yellow");
-            window.Game.log(`出售 ${item.name} 獲得 ${price} G`);
-            window.Game.updateUI();
-        }
+        window.UISystem.showConfirmModal(
+            "出售物品",
+            `確定要以 <span style="color:gold">${price} G</span> 出售 <span class="${CONFIG.rarityDisplay[item.rarity].color}">${item.name}</span> 嗎？`,
+            () => {
+                window.Player.inventory[category].splice(index, 1);
+                window.Player.gold += price;
+                AudioSystem.playSFX('coin');  // 出售獲得金幣音效
+                window.Game.showFloatingText("+ " + price + " G", "yellow");
+                window.Game.log(`出售 ${item.name} 獲得 ${price} G`);
+                window.Game.updateUI();
+            }
+        );
     },
 
     /**
@@ -280,6 +281,7 @@ const ItemSystem = {
 
         let total = 0;
         let keptItems = [];
+        let soldCount = 0;
 
         window.Player.inventory.material.forEach(item => {
             if (item.type === 'revive' || item.name === '彈弓' || item.name === '鉤子') {
@@ -294,15 +296,27 @@ const ItemSystem = {
                     price = Math.floor(price * 1.2);
                 }
                 total += price;
+                soldCount++;
             }
         });
 
-        window.Player.inventory.material = keptItems;
-        window.Player.gold += total;
-        AudioSystem.playSFX('coin');  // 出售素材獲得金幣音效
-        window.Game.showFloatingText("+ " + total + " G", "yellow");
-        window.Game.log(`出售了所有素材，獲得 ${total} G`);
-        window.Game.updateUI();
+        if (soldCount === 0) {
+            alert("沒有可出售的素材（特殊物品保留）。");
+            return;
+        }
+
+        window.UISystem.showConfirmModal(
+            "一鍵出售",
+            `確定要出售所有素材嗎？<br>預計獲得：<span style="color:gold">${total} G</span>`,
+            () => {
+                window.Player.inventory.material = keptItems;
+                window.Player.gold += total;
+                AudioSystem.playSFX('coin');  // 出售素材獲得金幣音效
+                window.Game.showFloatingText("+ " + total + " G", "yellow");
+                window.Game.log(`出售了所有素材，獲得 ${total} G`);
+                window.Game.updateUI();
+            }
+        );
     },
 
     /**
@@ -371,13 +385,17 @@ const ItemSystem = {
 
         const item = window.Player.inventory[category][index];
         if (['weapon', 'armor', 'shield'].includes(item.type)) {
-            if (confirm(`要裝備 ${item.name} (${this.getItemDesc(item)}) 嗎？`)) {
-                this.equip(index, category);
-            }
+            window.UISystem.showConfirmModal(
+                "裝備物品",
+                `要裝備 <span class="${CONFIG.rarityDisplay[item.rarity].color}">${item.name}</span> (${this.getItemDesc(item)}) 嗎？`,
+                () => this.equip(index, category)
+            );
         } else if (item.type === 'consumable') {
-            if (confirm(`要使用 ${item.name} (${item.desc}) 嗎？`)) {
-                this.useItem(index, category);
-            }
+            window.UISystem.showConfirmModal(
+                "使用物品",
+                `要使用 <span class="${CONFIG.rarityDisplay[item.rarity].color}">${item.name}</span> (${item.desc}) 嗎？`,
+                () => this.useItem(index, category)
+            );
         } else {
             alert(`${item.name}: ${item.desc || "素材/戰利品"}`);
         }
@@ -452,8 +470,7 @@ function getBlacksmithRate(currentEnhance) {
     };
 }
 
-// 綁定到全域
-if (typeof window !== 'undefined') {
-    window.ItemSystem = ItemSystem;
-    window.getBlacksmithRate = getBlacksmithRate;
-}
+// 導出模組
+window.ItemSystem = ItemSystem;
+console.log('ItemSystem loaded');
+window.getBlacksmithRate = getBlacksmithRate;

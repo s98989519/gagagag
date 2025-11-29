@@ -922,18 +922,27 @@ const EventSystem = {
             // 33% 獲得屬性增幅
             const isAtk = Math.random() < 0.5;
             if (isAtk) {
-                const boost = Math.floor(Math.random() * 5) + 1;
-                window.Player.baseAtk += boost;
+                // 攻擊力提升 10-25% (基於當前總攻擊力，含裝備)
+                const percentage = Math.random() * 0.15 + 0.10; // 0.10 ~ 0.25
+                const currentAtk = window.Game.getAtk();
+                const boost = Math.max(3, Math.floor(currentAtk * percentage));
+                const percentDisplay = Math.floor(percentage * 100);
+                window.Player.templeAtkBonus = (window.Player.templeAtkBonus || 0) + boost;
                 title = "⚔️ 神力的加持";
-                desc = `一道金光籠罩了你！<br>攻擊力永久提升了 <span class='crit-text'>${boost}</span> 點！`;
+                desc = `一道金光籠罩了你！<br>攻擊力永久提升了 <span class='crit-text'>${boost}</span> 點 (+${percentDisplay}%)！`;
                 icon = "💪";
                 window.Game.showFloatingText(`ATK +${boost}`, "#ff0000");
             } else {
-                const boost = Math.floor(Math.random() * 11) + 10; // 10-20
+                // 生命上限提升 10-25% (基於當前生命上限，含裝備)
+                const percentage = Math.random() * 0.15 + 0.10; // 0.10 ~ 0.25
+                const currentMaxHp = window.Player.maxHp;
+                const boost = Math.max(20, Math.floor(currentMaxHp * percentage));
+                const percentDisplay = Math.floor(percentage * 100);
+                window.Player.templeHpBonus = (window.Player.templeHpBonus || 0) + boost;
                 window.Player.maxHp += boost;
                 window.Player.hp += boost;
                 title = "💖 生命的祝福";
-                desc = `溫暖的光芒治癒了你！<br>生命上限永久提升了 <span class='heal-text'>${boost}</span> 點！`;
+                desc = `溫暖的光芒治癒了你！<br>生命上限永久提升了 <span class='heal-text'>${boost}</span> 點 (+${percentDisplay}%)！`;
                 icon = "💗";
                 window.Game.showFloatingText(`MaxHP +${boost}`, "#69f0ae");
             }

@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-TW">
 
 <head>
@@ -106,17 +106,27 @@
         </div>
     </div>
 
+    <!-- 自定義確認模態框 -->
+    <div id="confirm-modal" class="modal hidden">
+        <div class="modal-content confirm-modal-content">
+            <h3 id="confirm-title">確認</h3>
+            <p id="confirm-message">確定要執行此操作嗎？</p>
+            <div class="modal-buttons">
+                <button id="confirm-yes-btn" class="btn-confirm">確定</button>
+                <button id="confirm-no-btn" class="btn-cancel" onclick="UISystem.hideConfirmModal()">取消</button>
+            </div>
+        </div>
+    </div>
+
     <!-- 主遊戲容器 -->
     <div id="game-container">
         <div id="low-health-overlay" class="low-health-overlay hidden"></div>
         <header>
-            <div style="display:flex; align-items:center; gap:10px;">
-                <div style="font-weight: bold; font-size: 1.2em;">⚔️ 幻想冒險</div>
-                <button onclick="Game.showAchievements()" style="padding:4px 8px; font-size:0.8em;">🏆 成就</button>
-                <button onclick="Game.showCompendium()" style="padding:4px 8px; font-size:0.8em; background:#673ab7;">📖
-                    圖鑑</button>
-                <button onclick="AudioSystem.showSettings()"
-                    style="padding:4px 8px; font-size:0.8em; background:#555; margin-left:auto;">⚙️ 設定</button>
+            <div class="header-left">
+                <div class="game-title">⚔️ 幻想冒險</div>
+                <button onclick="Game.showAchievements()" class="header-btn">🏆 成就</button>
+                <button onclick="Game.showCompendium()" class="header-btn btn-purple">📖 圖鑑</button>
+                <button onclick="AudioSystem.showSettings()" class="header-btn btn-dark settings-btn">⚙️ 設定</button>
             </div>
             <div id="class-badge" class="class-badge"></div>
         </header>
@@ -155,7 +165,9 @@
 
             <div class="inv-container">
                 <div class="inv-col">
-                    <h4>📦 裝備 <button class="sort-btn" id="sort-equip-rarity" onclick="UISystem.toggleSort('equipment', 'rarity')">🔽稀有度</button><button class="sort-btn" id="sort-equip-type" onclick="UISystem.toggleSort('equipment', 'type')">🔽類型</button></h4>
+                    <h4>📦 裝備 <button class="sort-btn" id="sort-equip-rarity"
+                            onclick="UISystem.toggleSort('equipment', 'rarity')">🔽稀有度</button><button class="sort-btn"
+                            id="sort-equip-type" onclick="UISystem.toggleSort('equipment', 'type')">🔽類型</button></h4>
                     <div class="item-list" id="inv-equip"></div>
                 </div>
                 <div class="inv-col">
@@ -166,26 +178,22 @@
                     <h4>🧩 素材</h4>
                     <div class="item-list" id="inv-mat"></div>
                 </div>
+                <!-- JavaScript模組 (按依賴順序載入) -->
+                <script src="js/config.js"></script>
+                <script src="js/audio.js"></script>
+                <script src="js/items.js"></script>
+                <script src="js/combat.js"></script>
+                <script src="js/events.js"></script>
+                <script src="js/ui.js"></script>
+                <script src="js/game.js"></script>
+                <div id="legendary-effect" class="legendary-effect hidden">
+                    <div class="legendary-beam"></div>
+                    <div class="legendary-text">傳說！</div>
+                </div>
             </div>
         </div>
-
-        <div style="margin-top: 20px; border-top: 1px solid #444; padding-top: 15px;">
-            <button onclick="Game.manualRestart()" style="width: 100%; background: #d32f2f; opacity: 0.8;">🔄
-                重新開始遊戲</button>
-        </div>
-    </div>
-
-    <!-- JavaScript模組 (按依賴順序載入) -->
-    <script src="js/config.js"></script>
-    <script src="js/audio.js"></script>
-    <script src="js/items.js"></script>
-    <script src="js/combat.js"></script>
-    <script src="js/events.js"></script>
-    <script src="js/ui.js"></script>
-    <script src="js/game.js"></script>
-    <div id="legendary-effect" class="legendary-effect hidden">
-        <div class="legendary-beam"></div>
-        <div class="legendary-text">傳說！</div>
+        <button onclick="Game.manualRestart()" class="header-btn btn-red" style="width: 100%; margin-top: 20px;">🔄
+            重新開始</button>
     </div>
 </body>
 

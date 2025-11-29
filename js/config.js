@@ -5,7 +5,8 @@
  * @更新 2025-11-27
  */
 
-const CONFIG = {
+console.log('Loading config.js...');
+var CONFIG = {
     // 稀有度機率配置
     rarityProb: {
         common: 0.5,
@@ -170,7 +171,6 @@ const CONFIG = {
     }
 };
 
-// 導出配置（支持ES6模組和全域變數）
-if (typeof module !== 'undefined' && module.exports) {
-    module.exports = CONFIG;
-}
+// 導出配置
+window.CONFIG = CONFIG;
+console.log('CONFIG loaded');
