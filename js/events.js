@@ -53,16 +53,83 @@ const EventSystem = {
         if (options.length === 0) return;
 
         const selected = options[Math.floor(Math.random() * options.length)];
-        window.Player.buff = selected;
 
+        // 如果已有 Buff，進入替換確認流程
+        if (window.Player.buff) {
+            this.pendingBuff = selected;
+            this.confirmBuffReplacement();
+            return;
+        }
+
+        // 否則直接獲得
+        this.applyBuffDirect(selected, isAngel);
+    },
+
+    /**
+     * 確認是否替換 Buff
+     */
+    confirmBuffReplacement() {
+        const current = window.Player.buff;
+        const next = this.pendingBuff;
+
+        const curStyle = current.type === 'angel' ? 'angel-text' : 'demon-text';
+        const nextStyle = next.type === 'angel' ? 'angel-text' : 'demon-text';
+
+        const title = "抉擇時刻";
+        const desc = `
+            <div style="text-align:left; background:#222; padding:10px; border-radius:5px; margin-bottom:10px;">
+                <div style="margin-bottom:5px;">當前效果: <span class="${curStyle}">${current.name}</span></div>
+                <div style="color:#aaa; font-size:0.9em;">${current.desc}</div>
+            </div>
+            <div style="text-align:center; margin:10px 0;">⬇️ 是否替換為 ⬇️</div>
+            <div style="text-align:left; background:#222; padding:10px; border-radius:5px;">
+                <div style="margin-bottom:5px;">新效果: <span class="${nextStyle}">${next.name}</span></div>
+                <div style="color:#aaa; font-size:0.9em;">${next.desc}</div>
+            </div>
+        `;
+
+        window.Game.renderEvent(title, "你的身上已經有其他力量了...", desc, "⚖️");
+        window.Game.setButtons("替換", "applyBuff", "保留", "keepBuff", false);
+    },
+
+    /**
+     * 確認替換 Buff
+     */
+    applyBuff() {
+        if (!this.pendingBuff) return;
+        const isAngel = this.pendingBuff.type === 'angel';
+        this.applyBuffDirect(this.pendingBuff, isAngel);
+        this.pendingBuff = null;
+    },
+
+    /**
+     * 直接應用 Buff (內部使用)
+     */
+    applyBuffDirect(buff, isAngel) {
+        window.Player.buff = buff;
         const title = isAngel ? "天使聖像" : "惡魔聖像";
         const style = isAngel ? "angel-text" : "demon-text";
+        const icon = isAngel ? "👼" : "😈";
 
         window.Game.triggerAnim('event-icon', 'anim-spawn');
-        const desc = `你獲得了 <span class='${style}'>${selected.name}</span> 的效果。<br><small>${selected.desc}</small>`;
+        const desc = `你獲得了 <span class='${style}'>${buff.name}</span> 的效果。<br><small>${buff.desc}</small>`;
         window.Game.renderEvent(title, "祈禱得到了回應...", desc, icon);
         window.Game.setButtons("繼續", "nextEvent", "無", null, true);
         window.Game.updateUI();
+    },
+
+    /**
+     * 保留原有 Buff
+     */
+    keepBuff() {
+        window.Game.renderEvent(
+            "堅定信念",
+            "你決定保留原本的力量。",
+            "你拒絕了新的賜福，轉身離開。",
+            "✋"
+        );
+        window.Game.setButtons("離開", "nextEvent", "無", null, true);
+        this.pendingBuff = null;
     },
 
     /**
@@ -331,6 +398,7 @@ const EventSystem = {
      */
     handleMerchantEvent() {
         window.Game.triggerAnim('event-icon', 'anim-spawn');
+        AudioSystem.playSFX('shop'); // 播放商店音效
         window.Game.renderEvent(
             "⚖️ 黑市交易",
             "遇到一名可疑的黑市商人。",
@@ -374,6 +442,7 @@ const EventSystem = {
     triggerCasino() {
         window.GameState.phase = "casino";
         window.Game.triggerAnim('event-icon', 'anim-spawn');
+        AudioSystem.playSFX('stranger'); // 播放陌生人音效
         window.Game.renderEvent(
             "🕴️ 神秘賭客",
             "走在半路時，遇到了一個陌生人...",

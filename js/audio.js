@@ -22,7 +22,13 @@ const AudioSystem = {
         potion: 'audio/potion.wav', // 藥水/液體
         equip: 'audio/equip.wav',  // 裝備
         unequip: 'audio/unequip.wav', // 卸裝
-        item: 'audio/item.wav'    // 獲得物品
+        item: 'audio/item.wav',    // 獲得物品
+        die: 'audio/die.wav',      // 死亡
+        shop: 'audio/shop.wav',    // 商店
+        stranger: 'audio/stranger.wav', // 陌生人/賭場
+        anvil: 'audio/anvil.wav',   // 工匠/鐵砧
+        anvil_success: 'audio/anvil_2.wav', // 強化成功
+        anvil_fail: 'audio/anvil_3.wav'     // 強化失敗
     },
 
     init() {

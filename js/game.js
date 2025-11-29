@@ -352,6 +352,7 @@ const Game = {
      * 觸發工匠事件
      */
     triggerBlacksmith() {
+        AudioSystem.playSFX('anvil'); // 播放工匠音效
         // 自動卸下所有裝備到背包
         if (Player.equipment.weapon) {
             ItemSystem.addItemToInventory(Player.equipment.weapon, false);
@@ -435,20 +436,32 @@ const Game = {
         const enhance = item.enhance || 0;
         const cost = Math.floor(item.price / 2);
         const rate = getBlacksmithRate(enhance);
-        const currentVal = item.val + Math.floor(item.val * enhance * 0.1);
-        const nextVal = item.val + Math.floor(item.val * (enhance + 1) * 0.1);
-        const statType = item.type === 'weapon' ? '攻擊力' : item.type === 'armor' ? '生命值' : '耐久度';
+        const isShield = item.type === 'shield';
+        const baseVal = isShield ? item.def : item.val;
+
+        // 盾牌特殊公式：基礎成長 + 強化等級額外加值 (每級 +1)
+        const currentBonus = isShield ? enhance : 0;
+        const nextBonus = isShield ? (enhance + 1) : 0;
+
+        const currentVal = baseVal + Math.floor(baseVal * enhance * 0.1) + currentBonus;
+        const nextVal = baseVal + Math.floor(baseVal * (enhance + 1) * 0.1) + nextBonus;
+        const statType = item.type === 'weapon' ? '攻擊力' : item.type === 'armor' ? '生命值' : '防禦力';
 
         let html = `
             <h4 style="margin-bottom:15px;">🔨 選擇要消耗的素材</h4>
-            <div style="background:#222; padding:15px; border-radius:8px; margin-bottom:15px;">
-                <p style="margin:5px 0; color:#69f0ae;"><strong>強化裝備:</strong> ${item.icon} ${item.name}</p>
-                <p style="margin:5px 0;"><strong>消耗成本:</strong> <span style="color:#ffd700">${cost} G</span> + 1個素材</p>
-                <p style="margin:5px 0;"><strong>成功率:</strong> <span style="color:${rate.color}">${rate.rate}%</span></p>
-                <p style="margin:5px 0;"><strong>${statType}變化:</strong> ${currentVal} → <span style="color:#69f0ae">${nextVal}</span> (+${nextVal - currentVal})</p>
+            <div style="background:#222; padding:15px; border-radius:8px; margin-bottom:15px; display: flex; align-items: center; gap: 20px;">
+                <div style="text-align: center; flex-shrink: 0; min-width: 100px;">
+                    <div style="font-size: 40px; margin-bottom: 5px;">${item.icon}</div>
+                    <div style="color:#69f0ae; font-weight: bold;">${item.name}</div>
+                </div>
+                <div style="flex-grow: 1; border-left: 1px solid #444; padding-left: 20px;">
+                    <p style="margin:5px 0;"><strong>消耗成本:</strong> <span style="color:#ffd700">${cost} G</span> + 1個素材</p>
+                    <p style="margin:5px 0;"><strong>成功率:</strong> <span style="color:${rate.color}">${rate.rate}%</span></p>
+                    <p style="margin:5px 0;"><strong>${statType}變化:</strong> ${currentVal} → <span style="color:#69f0ae">${nextVal}</span> (+${nextVal - currentVal})</p>
+                </div>
             </div>
             <h4 style="margin-bottom:10px;">📦 可用素材 (點擊選擇):</h4>
-            <div class="merchant-grid">
+            <div class="merchant-grid" style="max-height: 300px; overflow-y: auto; padding-right: 5px;">
         `;
 
         materials.forEach(({ item: mat, index }) => {
@@ -459,7 +472,7 @@ const Game = {
                      onclick="Game.confirmEnhance(${targetIdx}, ${index})"
                      style="cursor:pointer;">
                     <div class="m-top">
-                        <span>${mat.icon} ${mat.name}${matEnhance > 0 ? ` +${matEnhance}` : ''}</span>
+                        <span>${mat.icon} ${mat.name}</span>
                     </div>
                     <div class="m-desc">${matDesc}</div>
                 </div>
@@ -492,26 +505,37 @@ const Game = {
         const enhance = item.enhance || 0;
         const cost = Math.floor(item.price / 2);
         const rate = getBlacksmithRate(enhance);
-        const currentVal = item.val + Math.floor(item.val * enhance * 0.1);
-        const nextVal = item.val + Math.floor(item.val * (enhance + 1) * 0.1);
-        const statType = item.type === 'weapon' ? '攻擊力' : item.type === 'armor' ? '生命值' : '耐久度';
+        const isShield = item.type === 'shield';
+        const baseVal = isShield ? item.def : item.val;
 
-        const msg = `🔨 最終確認\n\n` +
-            `強化裝備: ${item.name}\n` +
-            `消耗素材: ${material.name}\n` +
-            `消耗金幣: ${cost} G\n` +
-            `成功機率: ${rate.rate}%\n` +
-            `━━━━━━━━━━━━━━━━━━━━\n` +
-            `📊 ${statType}變化:\n` +
-            `   當前: ${currentVal}\n` +
-            `   成功後: ${nextVal} (+${nextVal - currentVal}) ✨\n` +
-            `   失敗: ${currentVal} (裝備不變，素材消失)\n` +
-            `━━━━━━━━━━━━━━━━━━━━\n` +
-            `確定要進行強化嗎？`;
+        // 盾牌特殊公式：基礎成長 + 強化等級額外加值 (每級 +1)
+        const currentBonus = isShield ? enhance : 0;
+        const nextBonus = isShield ? (enhance + 1) : 0;
 
-        if (confirm(msg)) {
-            this.attemptEnhance(targetIdx, materialIdx);
-        }
+        const currentVal = baseVal + Math.floor(baseVal * enhance * 0.1) + currentBonus;
+        const nextVal = baseVal + Math.floor(baseVal * (enhance + 1) * 0.1) + nextBonus;
+        const statType = item.type === 'weapon' ? '攻擊力' : item.type === 'armor' ? '生命值' : '防禦力';
+
+        const msg = `
+            <div style="text-align:left; font-size:1.1em; line-height:1.6;">
+                <p><strong>強化裝備:</strong> <span style="color:#69f0ae">${item.name}</span></p>
+                <p><strong>消耗素材:</strong> <span style="color:#ff9800">${material.name}</span></p>
+                <p><strong>消耗金幣:</strong> <span style="color:#ffd700">${cost} G</span></p>
+                <p><strong>成功機率:</strong> <span style="color:${rate.color}">${rate.rate}%</span></p>
+                <hr style="border-color:#444; margin:10px 0;">
+                <p><strong>📊 ${statType}變化:</strong></p>
+                <p style="padding-left:15px;">當前: ${currentVal}</p>
+                <p style="padding-left:15px;">成功後: <span style="color:#69f0ae">${nextVal} (+${nextVal - currentVal}) ✨</span></p>
+                <p style="padding-left:15px; color:#888;">失敗: ${currentVal} (裝備不變，素材消失)</p>
+                <hr style="border-color:#444; margin:10px 0;">
+            </div>
+        `;
+
+        window.UISystem.showConfirmModal(
+            "🔨 最終確認",
+            msg,
+            () => this.attemptEnhance(targetIdx, materialIdx)
+        );
     },
 
     /**
@@ -535,15 +559,25 @@ const Game = {
         GameState.blacksmithAttempts++;
 
         if (success) {
+            AudioSystem.playSFX('anvil_success'); // 播放強化成功音效
             targetItem.enhance = (targetItem.enhance || 0) + 1;
             const baseName = targetItem.name.replace(/\s*\+\d+$/, '');
             targetItem.name = `${baseName} +${targetItem.enhance}`;
             this.showFloatingText("強化成功!", "#69f0ae");
             this.triggerAnim('event-icon', 'anim-spawn');
-            const newVal = targetItem.val + Math.floor(targetItem.val * targetItem.enhance * 0.1);
-            targetItem.val = newVal;
-            this.renderEvent("✨ 強化成功！", `${targetItem.icon} ${targetItem.name}`, `恭喜！裝備變得更強了！<br><br>當前${targetItem.type === 'weapon' ? '攻擊力' : targetItem.type === 'armor' ? '生命值' : '耐久'}: <span style="color:#69f0ae">${newVal}</span>`, "🎉");
+            const isShield = targetItem.type === 'shield';
+            const baseVal = isShield ? targetItem.def : targetItem.val;
+
+            // 盾牌特殊公式：基礎成長 + 強化等級額外加值 (每級 +1)
+            const newBonus = isShield ? targetItem.enhance : 0;
+            const newVal = baseVal + Math.floor(baseVal * targetItem.enhance * 0.1) + newBonus;
+
+            if (isShield) targetItem.def = newVal;
+            else targetItem.val = newVal;
+
+            this.renderEvent("✨ 強化成功！", `${targetItem.icon} ${targetItem.name}`, `恭喜！裝備變得更強了！<br><br>當前${targetItem.type === 'weapon' ? '攻擊力' : targetItem.type === 'armor' ? '生命值' : '防禦力'}: <span style="color:#69f0ae">${newVal}</span>`, "🎉");
         } else {
+            AudioSystem.playSFX('anvil_fail'); // 播放強化失敗音效
             this.showFloatingText("強化失敗...", "#ff5252");
             this.triggerAnim('game-container', 'anim-screen-shake');
             this.renderEvent("💔 強化失敗", "工匠嘆了口氣...", `${targetItem.name} 強化失敗，但裝備未受損。<br><span style="color:#888">素材和金幣已消耗。</span>`, "😔");
@@ -580,6 +614,7 @@ const Game = {
      * 觸發商人事件
      */
     triggerMerchant() {
+        AudioSystem.playSFX('shop'); // 播放商店音效
         GameState.phase = "merchant";
         this.generateMerchantStock();
         this.triggerAnim('event-icon', 'anim-spawn');
@@ -781,7 +816,8 @@ const Game = {
 
     showAchievements() { UISystem.showAchievements(); },
     showCompendium() { UISystem.showCompendium(); },
-
+    showAffixCompendium() { UISystem.showAffixCompendium(); },
+    showBuffCompendium() { UISystem.showBuffCompendium(); },
     // ========== 玩家死亡與重啟 ==========
 
     /**
@@ -808,12 +844,14 @@ const Game = {
 
         GameState.phase = "dead";
         Player.hp = 0;
+        AudioSystem.playSFX('die');
         this.updateUI();
         localStorage.removeItem('fantasy_adventure_save');
         let cause = reason ? reason : "未知原因";
         this.renderEvent("☠️ 你死了", `死因：${cause}<br>冒險結束。最終深度: ${Player.depth}`, "重新整理網頁以重新開始", "🪦");
         this.setButtons("重新冒險", "restart", "無", null, true);
     },
+
 
     /**
      * 重新開始
@@ -822,8 +860,30 @@ const Game = {
         location.reload();
     },
 
-    // ========== 輔助函數 ==========
+    /**
+     * 獲取玩家總防禦力
+     */
+    getDef() {
+        let def = 0;
+        const player = window.Player;
 
+        // 1. 盾牌基礎防禦
+        if (player.equipment.shield && player.equipment.shield.def) {
+            def += player.equipment.shield.def;
+        }
+
+        // 2. 職業加成 (人猿: +2 防禦)
+        if (player.class === 'ape') {
+            def += 2;
+        }
+
+        // 2. 詞綴加成 (guarding: 守護的)
+        if (this.modifiers && this.modifiers.def) {
+            // 目前詞綴 def 是百分比減傷，不計入面板防禦
+        }
+
+        return Math.floor(def);
+    },
     /**
      * 獲取攻擊力
      */
@@ -840,6 +900,26 @@ const Game = {
         atk += (Player.templeAtkBonus || 0);
 
         return atk;
+    },
+
+    /**
+     * 獲取爆擊率
+     */
+    getCrit() {
+        let crit = 5; // 基礎爆擊率 5%
+
+        // 1. Buff 加成
+        if (Player.buff) {
+            if (Player.buff.id === 'angel_courage') crit = 20; // 天使的勇氣: 固定 20%
+            if (Player.buff.id === 'demon_enhance') crit = 50; // 惡魔的強化: 固定 50%
+        }
+
+        // 2. 詞綴加成 (如果有)
+        if (this.modifiers && this.modifiers.crit) {
+            crit += this.modifiers.crit;
+        }
+
+        return crit;
     },
     /**
      * 計算詞綴加成

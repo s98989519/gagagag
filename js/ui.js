@@ -98,6 +98,8 @@ const UISystem = {
         document.getElementById('hp-val').innerText = player.hp;
         document.getElementById('max-hp-val').innerText = player.maxHp;
         document.getElementById('atk-val').innerText = window.Game.getAtk();
+        document.getElementById('def-val').innerText = window.Game.getDef();
+        document.getElementById('crit-val').innerText = window.Game.getCrit() + '%';
         document.getElementById('gold-val').innerText = player.gold;
         document.getElementById('depth-val').innerText = player.depth;
 
@@ -151,7 +153,7 @@ const UISystem = {
         aEl.className = `equip-slot ${a ? CONFIG.rarityDisplay[a.rarity].color : ''}`;
 
         const sEl = document.getElementById('slot-shield');
-        sEl.innerHTML = s ? `<span class="${CONFIG.rarityDisplay[s.rarity].color}">${s.icon} ${s.name} (${s.val})</span>` : "無盾牌";
+        sEl.innerHTML = s ? `<span class="${CONFIG.rarityDisplay[s.rarity].color}">${s.icon} ${s.name} (+${s.def})</span>` : "無盾牌";
         sEl.className = `equip-slot ${s ? CONFIG.rarityDisplay[s.rarity].color : ''}`;
     },
 
@@ -403,7 +405,7 @@ const UISystem = {
             const cost = Math.floor(item.price / 2);
             const rateData = window.getBlacksmithRate(enhance);
             hasItems = true;
-            html += `<div class="merchant-item ${CONFIG.rarityDisplay[item.rarity].color}" onclick="Game.showBlacksmithConfirm(${idx})"><div class="m-top"><span>${item.icon} ${item.name}${enhance > 0 ? ` +${enhance}` : ''}</span></div><div class="m-desc">${window.ItemSystem.getItemDesc(item)}<br>消耗: <span style="color:#ffd700">${cost} G</span> + 1個同名裝備<br>成功率: <span style="color:${rateData.color}">${rateData.rate}%</span></div></div>`;
+            html += `<div class="merchant-item ${CONFIG.rarityDisplay[item.rarity].color}" onclick="Game.showBlacksmithConfirm(${idx})"><div class="m-top"><span>${item.icon} ${item.name}</span></div><div class="m-desc">${window.ItemSystem.getItemDesc(item)}<br>消耗: <span style="color:#ffd700">${cost} G</span> + 1個同名裝備<br>成功率: <span style="color:${rateData.color}">${rateData.rate}%</span></div></div>`;
         });
 
         html += '</div>';
@@ -494,7 +496,130 @@ const UISystem = {
             list.appendChild(div);
         });
     },
+    /**
+     * 顯示詞綴圖鑑（條列式）
+     */
+    showAffixCompendium() {
+        const modal = document.getElementById('affix-modal');
+        const list = document.getElementById('affix-content');
+        const stats = document.getElementById('affix-stats');
 
+        if (!modal || !list || !stats) {
+            alert('詞綴圖鑑UI未就緒');
+            return;
+        }
+
+        list.innerHTML = "";
+        modal.style.display = 'flex';
+        // 收集所有詞綴
+        const prefixes = [];
+        const suffixes = [];
+
+        Object.entries(CONFIG.affixes.prefixes).forEach(([key, affix]) => {
+            prefixes.push({ ...affix, key });
+        });
+        Object.entries(CONFIG.affixes.suffixes).forEach(([key, affix]) => {
+            suffixes.push({ ...affix, key });
+        });
+        const total = prefixes.length + suffixes.length;
+        stats.innerText = `總計: ${total} 個詞綴 (前綴: ${prefixes.length}, 後綴: ${suffixes.length})`;
+        // 顯示前綴
+        const prefixTitle = document.createElement('h3');
+        prefixTitle.style.cssText = 'color:#4fc3f7; margin:15px 0 10px 0; font-size:1.1em; border-bottom:2px solid #4fc3f7; padding-bottom:5px;';
+        prefixTitle.textContent = '🔰 前綴詞綴';
+        list.appendChild(prefixTitle);
+        prefixes.forEach(affix => {
+            const div = document.createElement('div');
+            div.style.cssText = 'background:#2a2a2a; padding:12px; border-radius:8px; border-left:4px solid #4fc3f7;';
+            div.innerHTML = `
+            <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px;">
+                <span style="font-size:1.5em;">🔰</span>
+                <span style="color:white; font-weight:bold; font-size:1.05em;">${affix.name}</span>
+            </div>
+            <div style="color:#aaa; font-size:0.9em; padding-left:35px;">
+                ${affix.desc || '無描述'}
+            </div>
+        `;
+            list.appendChild(div);
+        });
+        // 顯示後綴
+        const suffixTitle = document.createElement('h3');
+        suffixTitle.style.cssText = 'color:#f48fb1; margin:25px 0 10px 0; font-size:1.1em; border-bottom:2px solid #f48fb1; padding-bottom:5px;';
+        suffixTitle.textContent = '✨ 後綴詞綴';
+        list.appendChild(suffixTitle);
+        suffixes.forEach(affix => {
+            const div = document.createElement('div');
+            div.style.cssText = 'background:#2a2a2a; padding:12px; border-radius:8px; border-left:4px solid #f48fb1;';
+            div.innerHTML = `
+            <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px;">
+                <span style="font-size:1.5em;">✨</span>
+                <span style="color:white; font-weight:bold; font-size:1.05em;">${affix.name}</span>
+            </div>
+            <div style="color:#aaa; font-size:0.9em; padding-left:35px;">
+                ${affix.desc || '無描述'}
+            </div>
+        `;
+            list.appendChild(div);
+        });
+    },
+    /**
+     * 顯示Buff圖鑑（條列式）
+     */
+    showBuffCompendium() {
+        const modal = document.getElementById('buff-modal');
+        const list = document.getElementById('buff-content');
+        const stats = document.getElementById('buff-stats');
+
+        if (!modal || !list || !stats) {
+            alert('Buff圖鑑UI未就緒');
+            return;
+        }
+
+        list.innerHTML = "";
+        modal.style.display = 'flex';
+        const allBuffs = Object.values(CONFIG.buffs);
+        const angelBuffs = allBuffs.filter(b => b.type === 'angel');
+        const demonBuffs = allBuffs.filter(b => b.type === 'demon');
+        stats.innerText = `總計: ${allBuffs.length} 個效果 (天使祝福: ${angelBuffs.length}, 惡魔詛咒: ${demonBuffs.length})`;
+        // 顯示天使祝福
+        const angelTitle = document.createElement('h3');
+        angelTitle.style.cssText = 'color:#69f0ae; margin:15px 0 10px 0; font-size:1.1em; border-bottom:2px solid #69f0ae; padding-bottom:5px;';
+        angelTitle.textContent = '😇 天使祝福';
+        list.appendChild(angelTitle);
+        angelBuffs.forEach(buff => {
+            const div = document.createElement('div');
+            div.style.cssText = 'background:#2a2a2a; padding:12px; border-radius:8px; border-left:4px solid #69f0ae;';
+            div.innerHTML = `
+            <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px;">
+                <span style="font-size:1.5em;">😇</span>
+                <span style="color:white; font-weight:bold; font-size:1.05em;">${buff.name}</span>
+            </div>
+            <div style="color:#aaa; font-size:0.9em; padding-left:35px;">
+                ${buff.desc || '無描述'}
+            </div>
+        `;
+            list.appendChild(div);
+        });
+        // 顯示惡魔詛咒
+        const demonTitle = document.createElement('h3');
+        demonTitle.style.cssText = 'color:#ff6b6b; margin:25px 0 10px 0; font-size:1.1em; border-bottom:2px solid #ff6b6b; padding-bottom:5px;';
+        demonTitle.textContent = '😈 惡魔詛咒';
+        list.appendChild(demonTitle);
+        demonBuffs.forEach(buff => {
+            const div = document.createElement('div');
+            div.style.cssText = 'background:#2a2a2a; padding:12px; border-radius:8px; border-left:4px solid #ff6b6b;';
+            div.innerHTML = `
+            <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px;">
+                <span style="font-size:1.5em;">😈</span>
+                <span style="color:white; font-weight:bold; font-size:1.05em;">${buff.name}</span>
+            </div>
+            <div style="color:#aaa; font-size:0.9em; padding-left:35px;">
+                ${buff.desc || '無描述'}
+            </div>
+        `;
+            list.appendChild(div);
+        });
+    },
     /**
      * 顯示傳說物品特效
      */

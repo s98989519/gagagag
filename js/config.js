@@ -35,7 +35,7 @@ var CONFIG = {
         angel_wings: { id: 'angel_wings', name: '🕊️ 天使的翅膀', type: 'angel', desc: '逃跑成功率提升至 60%' },
         angel_blessing: { id: 'angel_blessing', name: '🪙 天使的恩賜', type: 'angel', desc: '商店物品價格降低 30%，素材售價提高 20%' },
         angel_fortune: { id: 'angel_fortune', name: '🍀 天使的幸運', type: 'angel', desc: '戰利品掉落率提升至 100%，10% 機率獲得額外掉落' },
-        angel_vitality: { id: 'angel_vitality', name: '⚗️ 天使的活力', type: 'angel', desc: '所有藥水恢復效果提升 50%，盾牌耐久 +1' },
+        angel_vitality: { id: 'angel_vitality', name: '⚗️ 天使的活力', type: 'angel', desc: '所有藥水恢復效果提升 50%' },
         demon_wealth: { id: 'demon_wealth', name: '💰 惡魔的財富', type: 'demon', desc: '攻擊得5金幣，但逃跑失敗被攻擊時扣5金幣' },
         demon_destruction: { id: 'demon_destruction', name: '💀 惡魔的破壞', type: 'demon', desc: '10%機率秒殺怪物，觸發後扣除當前血量90%' },
         demon_enhance: { id: 'demon_enhance', name: '🔥 惡魔的強化', type: 'demon', desc: '雙方致命一擊機率變為 50%' },
@@ -105,14 +105,14 @@ var CONFIG = {
         { name: "強力藥水", type: "consumable", val: 80, rarity: "uncommon", price: 60, icon: "🍷", desc: "恢復80點生命" },
         { name: "秘銀劍", type: "weapon", val: 30, rarity: "rare", price: 250, icon: "⚔️" },
         { name: "板甲", type: "armor", val: 100, rarity: "rare", price: 250, icon: "🛡️" },
-        { name: "騎士盾", type: "shield", val: 2, rarity: "rare", price: 300, icon: "🛡️" },
+        { name: "騎士盾", type: "shield", def: 5, rarity: "rare", price: 300, icon: "🛡️" },
         { name: "精靈藥劑", type: "consumable", val: 200, rarity: "rare", price: 150, icon: "🧉", desc: "恢復200點生命" },
         { name: "屠龍劍", type: "weapon", val: 60, rarity: "epic", price: 800, icon: "🐉" },
         { name: "龍鱗鎧甲", type: "armor", val: 250, rarity: "epic", price: 800, icon: "🥋" },
-        { name: "塔盾", type: "shield", val: 5, rarity: "epic", price: 500, icon: "🧱" },
+        { name: "塔盾", type: "shield", def: 10, rarity: "epic", price: 500, icon: "🧱" },
         { name: "聖劍 Excalibur", type: "weapon", val: 150, rarity: "legendary", price: 2500, icon: "🌟" },
         { name: "神之光輝", type: "armor", val: 400, rarity: "legendary", price: 2000, icon: "🌞" },
-        { name: "埃癸斯之盾", type: "shield", val: 10, rarity: "legendary", price: 900, icon: "🔱" }
+        { name: "埃癸斯之盾", type: "shield", def: 20, rarity: "legendary", price: 900, icon: "🔱" }
     ],
 
     // 不死鳥羽毛
@@ -167,6 +167,21 @@ var CONFIG = {
             "regen": { name: "之再生", type: "suffix", allowedTypes: ['armor', 'shield'], desc: "戰鬥結束恢復 10 HP" },
             "greed": { name: "之貪婪", type: "suffix", allowedTypes: ['weapon', 'armor', 'shield'], desc: "10% 機率戰鬥金幣翻倍" },
             "luck": { name: "之幸運", type: "suffix", allowedTypes: ['weapon', 'armor', 'shield'], effect: "luck", val: 0.2, desc: "戰利品掉落率+20%，且易掉落稀有物" }
+        }
+    },
+    // 怪物專用詞綴
+    monsterAffixes: {
+        prefixes: {
+            "fierce": { name: "猛烈的", type: "prefix", effect: "atk", val: 0.10, desc: "攻擊力 +10%" },
+            "sturdy": { name: "堅固的", type: "prefix", effect: "hp", val: 0.10, desc: "生命上限 +10%" },
+            "deadly": { name: "致命的", type: "prefix", effect: "crit", val: 0.05, desc: "暴擊率 +5%" },
+            "guarding": { name: "守護的", type: "prefix", effect: "def", val: 0.05, desc: "減傷 +5%" },
+            "legendary": { name: "傳說的", type: "prefix", effect: "all", val: 0.15, desc: "全屬性 +15%", rarity: "legendary" }
+        },
+        suffixes: {
+            "leeching": { name: "之吸血", type: "suffix", effect: "leech", val: 0.10, desc: "攻擊恢復 10% 傷害的生命" },
+            "frost": { name: "之冰霜", type: "suffix", effect: "freeze", val: 0.10, desc: "10% 機率凍結敵人" },
+            "rage": { name: "之狂暴", type: "suffix", effect: "rage", val: 0.005, desc: "每損失 1% 血量 +0.5% 攻擊" }
         }
     }
 };

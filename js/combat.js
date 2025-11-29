@@ -29,7 +29,9 @@ const CombatSystem = {
         window.GameState.currentEnemy = enemy;
 
         this.renderCombatStart(enemy);
-        window.Game.setButtons("戰鬥", "combatRound", "逃跑", "flee", !canFlee);
+        const fleeRate = this.getFleeRate();
+        const fleeText = `逃跑 (${Math.round(fleeRate * 100)}%)`;
+        window.Game.setButtons("戰鬥", "combatRound", fleeText, "flee", !canFlee);
     },
 
     getWeightedMonster() {
@@ -81,19 +83,17 @@ const CombatSystem = {
         let hpMul = 1, atkMul = 1;
         let namePrefix = "";
 
-        // 深層漸進式難度：
-        // 1-300層: 無增幅
-        // 300-600層: 每100層 +10% HP
-        // 600層+: 每100層 +5% HP（基於600層的1.3倍）
-        if (window.Player.depth > 300 && window.Player.depth <= 600) {
-            const deepLayers = Math.floor((window.Player.depth - 300) / 100);
-            hpMul *= (1 + deepLayers * 0.1);
-            namePrefix += "深淵 ";
-        } else if (window.Player.depth > 600) {
-            // 600層基礎為1.3，之後每100層再加5%
-            const extraLayers = Math.floor((window.Player.depth - 600) / 100);
-            hpMul = 1.3 + (extraLayers * 0.05);
-            namePrefix += "深淵 ";
+        // 深層漸進式難度 (方案B)：
+        // 1-299層: 無增幅
+        // 300層起: 每100層 +10% HP 和 攻擊力
+        // 例如: 300層(1.1x), 400層(1.2x), 1000層(1.8x)
+        if (window.Player.depth >= 300) {
+            const deepLayers = Math.floor(window.Player.depth / 100) - 2;
+            if (deepLayers > 0) {
+                hpMul *= (1 + deepLayers * 0.1);
+                atkMul *= (1 + deepLayers * 0.1);
+                namePrefix += "深淵 ";
+            }
         }
 
         if (tier === "elite") {
@@ -106,18 +106,66 @@ const CombatSystem = {
             namePrefix += "首領 ";
         }
 
+        // 1000層後：怪物詞綴系統
+        let prefix = null;
+        let suffix = null;
+        let extraDropRate = 0;
+
+        if (window.Player.depth > 1000) {
+            // 30% 機率出現前綴
+            if (Math.random() < 0.3) {
+                const prefixes = Object.entries(CONFIG.monsterAffixes.prefixes);
+                // 傳說詞綴機率較低 (5%)
+                const roll = Math.random();
+                if (roll < 0.05) {
+                    const legend = prefixes.find(([k, v]) => k === 'legendary');
+                    if (legend) prefix = { key: legend[0], ...legend[1] };
+                } else {
+                    const normalPrefixes = prefixes.filter(([k, v]) => k !== 'legendary');
+                    const picked = normalPrefixes[Math.floor(Math.random() * normalPrefixes.length)];
+                    prefix = { key: picked[0], ...picked[1] };
+                }
+            }
+
+            // 30% 機率出現後綴
+            if (Math.random() < 0.3) {
+                const suffixes = Object.entries(CONFIG.monsterAffixes.suffixes);
+                const picked = suffixes[Math.floor(Math.random() * suffixes.length)];
+                suffix = { key: picked[0], ...picked[1] };
+            }
+        }
+
+        // 應用詞綴加成
+        if (prefix) {
+            namePrefix = `<span class="affix-prefix">${prefix.name}</span> ` + namePrefix;
+            extraDropRate += 0.5; // 每個詞綴增加 50% 掉落率
+
+            if (prefix.effect === 'atk' || prefix.effect === 'all') atkMul *= (1 + prefix.val);
+            if (prefix.effect === 'hp' || prefix.effect === 'all') hpMul *= (1 + prefix.val);
+            // crit 和 def (減傷) 在戰鬥邏輯中處理
+        }
+
+        if (suffix) {
+            namePrefix = namePrefix + ` <span class="affix-suffix">${suffix.name}</span>`;
+            extraDropRate += 0.5;
+            // 後綴通常是特殊效果，在戰鬥邏輯中處理
+        }
+
         let enemy = {
             ...baseMonster,
             name: namePrefix + baseMonster.name,
             maxHp: Math.floor(baseMonster.hp * hpMul),
             hp: Math.floor(baseMonster.hp * hpMul),
             atk: Math.floor(baseMonster.atk * atkMul),
-            tier: tier
+            tier: tier,
+            prefix: prefix,
+            suffix: suffix,
+            extraDropRate: extraDropRate
         };
 
         if (checkTrueForm) {
-            const hasSword = window.Player.equipment.weapon?.name === "聖劍 Excalibur";
-            const hasArmor = window.Player.equipment.armor?.name === "神之光輝";
+            const hasSword = window.Player.equipment.weapon?.name?.includes("聖劍 Excalibur");
+            const hasArmor = window.Player.equipment.armor?.name?.includes("神之光輝");
 
             if (hasSword && hasArmor) {
                 enemy.name = "魔王真身";
@@ -125,6 +173,9 @@ const CombatSystem = {
                 enemy.hp = 4000;
                 enemy.atk = 200;
                 enemy.isTrueForm = true;
+                // 真身也可以有詞綴，保留上面的 prefix/suffix
+                if (prefix) enemy.name = `<span class="affix-prefix">${prefix.name}</span> ` + enemy.name;
+                if (suffix) enemy.name = enemy.name + ` <span class="affix-suffix">${suffix.name}</span>`;
             }
         }
 
@@ -185,6 +236,9 @@ const CombatSystem = {
         if (window.Player.hp <= 0) {
             window.Game.playerDie(`被 ${enemy.name} 殺死`);
         } else {
+            const fleeRate = this.getFleeRate();
+            const fleeText = `逃跑 (${Math.round(fleeRate * 100)}%)`;
+            window.Game.setButtons("戰鬥", "combatRound", fleeText, "flee", false);
             window.Game.updateUI();
         }
     },
@@ -274,13 +328,28 @@ const CombatSystem = {
         return { log, enemyDead: enemy.hp <= 0, isFrozen };
     },
 
-
     executeMonsterAttack(enemy) {
-        let mDmg = enemy.atk;
+        // 怪物攻擊力計算 (含 Rage 詞綴)
+        let currentAtk = enemy.atk;
+        if (enemy.suffix && enemy.suffix.key === 'rage') {
+            const lostHpPercent = (1 - enemy.hp / enemy.maxHp) * 100;
+            if (lostHpPercent > 0) {
+                const bonus = Math.floor(enemy.atk * lostHpPercent * 0.005);
+                currentAtk += bonus;
+            }
+        }
+
+        let mDmg = currentAtk;
         let mCritRate = 0.1;
         let log = "";
 
         const player = window.Player;
+
+        // 怪物暴擊計算 (含 Deadly/Legendary 詞綴)
+        if (enemy.prefix && (enemy.prefix.key === 'deadly' || enemy.prefix.key === 'legendary')) {
+            mCritRate += 0.05;
+        }
+
         if (player.buff) {
             if (player.buff.id === 'demon_enhance') mCritRate = 0.5;
             if (player.buff.id === 'angel_protection') mDmg = Math.floor(mDmg * 0.7);
@@ -295,6 +364,13 @@ const CombatSystem = {
         if (mCrit) mDmg *= 2;
 
         AudioSystem.playSFX('damage');  // 受傷音效
+
+        // 計算防禦減傷 (最低傷害機制：至少受到 10% 攻擊力或 1 點傷害)
+        const def = window.Game.getDef();
+        // 怪物防禦穿透? 目前沒有，但可以考慮 Guarding 詞綴對玩家傷害的減免 (反向思考，Guarding 是減傷，所以這裡不影響攻擊)
+
+        const minDmg = Math.max(1, Math.floor(currentAtk * 0.1));
+        mDmg = Math.max(minDmg, mDmg - def);
 
         // 檢查詞綴效果 (Thorns: 之荊棘)
         // 檢查防具和盾牌
@@ -312,46 +388,41 @@ const CombatSystem = {
             log += `<span class='thorns-text'>[荊棘]</span> 反彈 ${thornsDamage} 點傷害！<br>`;
         }
 
-        if (player.equipment.shield && player.equipment.shield.val > 0) {
-            // 天使的活力：盾牌格擋不消耗耐久
-            const consumeDurability = !(player.buff && player.buff.id === 'angel_vitality');
-
-            if (consumeDurability) {
-                player.equipment.shield.val -= 1;
-            }
-
-            let isPierced = (mCrit && player.equipment.shield.name !== "埃癸斯之盾");
-
-            window.Game.triggerAnim('event-icon', 'anim-lunge');
-
-            if (isPierced) {
-                player.hp -= mDmg;
-                window.Game.triggerAnim('game-container', 'anim-screen-shake');
-                window.Game.showFloatingText(`-${mDmg}`, "red");
-                log += `<span class='pierce-text'>⚡ 致命一擊貫穿了盾牌！</span><br>`;
-                log += `${enemy.name} 造成 ${mDmg} 點傷害。<br>`;
-            } else {
-                window.Game.showFloatingText("格擋!", "#2196f3");
-                let blockMsg = `<span class='block-text'>🛡️ 盾牌抵擋了攻擊！</span>`;
-                if (player.buff && player.buff.id === 'angel_vitality') {
-                    blockMsg += ` <span class='angel-text'>[天使活力]</span> 耐久未消耗`;
-                } else {
-                    blockMsg += ` (剩餘耐久: ${player.equipment.shield.val})`;
-                }
-                log += blockMsg + `<br>`;
-            }
-
-            if (player.equipment.shield.val <= 0) {
-                log += `<span class='damage-text'>💔 你的 ${player.equipment.shield.name} 碎裂了！</span><br>`;
-                player.equipment.shield = null;
-                window.Game.recalcStats();
-            }
-        } else {
+        if (mDmg > 0) {
             player.hp -= mDmg;
             window.Game.triggerAnim('event-icon', 'anim-lunge');
             window.Game.triggerAnim('game-container', 'anim-screen-shake');
             window.Game.showFloatingText(`-${mDmg}`, "red");
             log += `${enemy.name} 攻擊！造成 ${mCrit ? "<span class='crit-text'>致命 " : ""}${mDmg}${mCrit ? "</span>" : ""} 點傷害。`;
+
+            // 處理怪物特殊詞綴效果
+            // 1. 吸血 (Leeching)
+            if (enemy.suffix && enemy.suffix.key === 'leeching') {
+                const heal = Math.floor(mDmg * 0.1);
+                if (heal > 0) {
+                    enemy.hp = Math.min(enemy.maxHp, enemy.hp + heal);
+                    window.Game.showFloatingText(`+${heal}`, "green"); // 怪物回血
+                    log += `<br><span class='affix-suffix'>[吸血]</span> 怪物恢復了 ${heal} 點生命`;
+                    this.updateEnemyHealthBar(enemy);
+                }
+            }
+
+            // 2. 冰霜 (Frost)
+            if (enemy.suffix && enemy.suffix.key === 'frost') {
+                if (Math.random() < 0.1) {
+                    // 冰凍效果：玩家下回合無法行動? 或者扣除體力? 
+                    // 簡化實作：造成額外冰凍傷害並提示
+                    const frostDmg = Math.floor(player.maxHp * 0.05);
+                    player.hp -= frostDmg;
+                    window.Game.showFloatingText(`凍結! -${frostDmg}`, "cyan");
+                    log += `<br><span class='affix-suffix'>[冰霜]</span> 你被凍傷了！受到額外 ${frostDmg} 點傷害`;
+                }
+            }
+        } else {
+            // 理論上不會再有完全無傷的情況，除非 minDmg 為 0 (不可能)
+            // 但為了保險起見保留這個分支，或者改為顯示極低傷害
+            window.Game.showFloatingText("防禦!", "#2196f3");
+            log += `<span class='block-text'>🛡️ 你的防禦大幅減輕了攻擊！</span><br>`;
         }
 
         return { log };
@@ -413,11 +484,21 @@ const CombatSystem = {
             normalDropRate += window.Game.modifiers.luck;
         }
 
+        // 應用怪物詞綴加成 (extraDropRate)
+        if (enemy.extraDropRate) {
+            normalDropRate += enemy.extraDropRate;
+        }
+
         if (Math.random() < normalDropRate && CONFIG.lootData[enemy.drop]) {
             drops.push({ ...CONFIG.lootData[enemy.drop], name: enemy.drop, type: "loot" });
         }
 
-        if ((enemy.tier === "elite" || enemy.tier === "boss") && Math.random() < 0.3) {
+        // 菁英/首領/詞綴怪物 額外掉落判定
+        // 基礎機率 30%，如果有詞綴則大幅提升
+        let specialDropRate = 0.3;
+        if (enemy.extraDropRate) specialDropRate += enemy.extraDropRate;
+
+        if ((enemy.tier === "elite" || enemy.tier === "boss" || enemy.prefix || enemy.suffix) && Math.random() < specialDropRate) {
             if (CONFIG.lootData[enemy.eliteDrop]) {
                 drops.push({ ...CONFIG.lootData[enemy.eliteDrop], name: enemy.eliteDrop, type: "loot" });
             }
@@ -490,20 +571,16 @@ const CombatSystem = {
         return log;
     },
 
-    flee() {
+    /**
+     * 計算當前逃跑率
+     */
+    getFleeRate() {
         let fleeRate = 0.5;
         const player = window.Player;
 
         if (player.buff) {
             if (player.buff.id === 'angel_wings') fleeRate = 0.6;
-            if (player.buff.id === 'demon_wager') {
-                fleeRate = 0.8;
-                if (Math.random() < 0.01) {
-                    player.hp = 0;
-                    window.Game.playerDie("死於惡魔賭約");
-                    return;
-                }
-            }
+            if (player.buff.id === 'demon_wager') fleeRate = 0.8;
         }
 
         // 應用詞綴加成 (Game.modifiers.flee)
@@ -511,6 +588,22 @@ const CombatSystem = {
             fleeRate += window.Game.modifiers.flee;
         }
 
+        return Math.min(1.0, Math.max(0, fleeRate));
+    },
+
+    flee() {
+        const player = window.Player;
+
+        // 惡魔賭約：先檢查死亡風險
+        if (player.buff && player.buff.id === 'demon_wager') {
+            if (Math.random() < 0.01) {
+                player.hp = 0;
+                window.Game.playerDie("死於惡魔賭約");
+                return;
+            }
+        }
+
+        const fleeRate = this.getFleeRate();
         const enemy = window.GameState.currentEnemy;
         const fleeSuccess = Math.random() < fleeRate;
 
@@ -519,30 +612,23 @@ const CombatSystem = {
         if (fleeSuccess) {
             AudioSystem.playSFX('flee');  // 逃跑成功音效
             window.GameState.phase = "event_end";
+            this.hideEnemyHealthBar(); // 隱藏敵人血條
             window.Game.log("> 成功逃跑！");
             window.Game.renderEvent("🏃 逃跑成功", "你成功逃離了戰鬥！", "深呼吸，繼續前進。", "💨");
             document.getElementById('event-icon').className = "monster-icon";
             window.Game.setButtons("繼續", "nextEvent", "無", null, true);
         } else {
             AudioSystem.playSFX('damage');  // 逃跑失敗受傷音效
-            const shield = player.equipment.shield;
             let dmg = enemy.atk;
+
+            // 計算防禦減傷 (最低傷害機制)
+            const def = window.Game.getDef();
+            const minDmg = Math.max(1, Math.floor(enemy.atk * 0.1));
+            dmg = Math.max(minDmg, dmg - def);
 
             window.Game.triggerAnim('event-icon', 'anim-lunge');
 
-            if (shield && shield.val > 0) {
-                shield.val--;
-                window.Game.showFloatingText("格擋!", "#2196f3");
-                let msg = `逃跑失敗！但<span class='block-text'>盾牌抵擋了追擊</span>！`;
-
-                if (shield.val <= 0) {
-                    msg += `<br><span class='damage-text'>💔 你的 ${shield.name} 碎裂了！</span>`;
-                    player.equipment.shield = null;
-                    window.Game.recalcStats();
-                }
-
-                window.Game.renderEvent("❌ 逃跑失敗", "敵人追上了你！", msg, enemy.icon);
-            } else {
+            if (dmg > 0) {
                 player.hp -= dmg;
                 window.Game.showFloatingText(`-${dmg} HP`, "red");
                 window.Game.triggerAnim('game-container', 'anim-screen-shake');
@@ -556,13 +642,18 @@ const CombatSystem = {
                 }
 
                 window.Game.renderEvent("❌ 逃跑失敗", `敵人追上並攻擊了你！`, msg, enemy.icon);
+            } else {
+                window.Game.showFloatingText("防禦!", "#2196f3");
+                window.Game.renderEvent("❌ 逃跑失敗", "敵人追上了你！", "<span class='block-text'>🛡️ 你的防禦大幅減輕了追擊！</span>", enemy.icon);
             }
 
             if (player.hp <= 0) {
                 window.Game.playerDie(`在逃跑時被 ${enemy.name} 殺死`);
             } else {
                 window.Game.log("> 逃跑失敗！敵人趁機攻擊。");
-                window.Game.setButtons("戰鬥", "combatRound", "逃跑", "flee", false);
+                const fleeRate = this.getFleeRate();
+                const fleeText = `逃跑 (${Math.round(fleeRate * 100)}%)`;
+                window.Game.setButtons("戰鬥", "combatRound", fleeText, "flee", false);
                 window.Game.updateUI();
             }
         }

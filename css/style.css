@@ -1599,3 +1599,5 @@ button:disabled {
 
     .btn-cancel:hover { background: #666; } .btn-red { background: #f44336; color: white; } .btn-red:hover { background: #d32f2f; }
 
+
+.stats-grid { grid-template-columns: repeat(3, 1fr) !important; }

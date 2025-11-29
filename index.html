@@ -37,7 +37,7 @@
             </div>
             <div class="class-card" onclick="Game.selectClass('ape')">
                 <div class="class-title">🦍 人猿</div>
-                <div class="class-desc">遭遇跌倒事件<br>必定抓住岩壁</div>
+                <div class="class-desc">擁有強韌的皮膚<br>基礎防禦力 +2</div>
             </div>
         </div>
     </div>
@@ -65,6 +65,37 @@
         <div id="compendium-stats" style="color:#aaa; margin-bottom:10px;"></div>
         <div class="compendium-container">
             <div class="compendium-grid" id="compendium-content"></div>
+        </div>
+    </div>
+
+    <!-- 詞綴圖鑑模態框 -->
+    <div id="affix-modal"
+        style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:9999; justify-content:center; align-items:center; overflow-y:auto;">
+        <div
+            style="width:90%; max-width:700px; max-height:90vh; overflow-y:auto; background:#1a1a1a; padding:20px; border-radius:10px;">
+            <div
+                style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; position:sticky; top:0; background:#1a1a1a; padding-bottom:10px; border-bottom:2px solid #444;">
+                <h2 style="color:white; margin:0;">📜 詞綴圖鑑</h2>
+                <button onclick="document.getElementById('affix-modal').style.display='none'"
+                    style="background:#555; padding:8px 15px; border:none; border-radius:5px; color:white; cursor:pointer;">關閉</button>
+            </div>
+            <div id="affix-stats" style="color:#aaa; margin-bottom:15px; font-size:0.9em;"></div>
+            <div id="affix-content" style="display:flex; flex-direction:column; gap:10px;"></div>
+        </div>
+    </div>
+    <!-- Buff圖鑑模態框 -->
+    <div id="buff-modal"
+        style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:9999; justify-content:center; align-items:center; overflow-y:auto;">
+        <div
+            style="width:90%; max-width:700px; max-height:90vh; overflow-y:auto; background:#1a1a1a; padding:20px; border-radius:10px;">
+            <div
+                style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; position:sticky; top:0; background:#1a1a1a; padding-bottom:10px; border-bottom:2px solid #444;">
+                <h2 style="color:white; margin:0;">✨ 祝福與詛咒圖鑑</h2>
+                <button onclick="document.getElementById('buff-modal').style.display='none'"
+                    style="background:#555; padding:8px 15px; border:none; border-radius:5px; color:white; cursor:pointer;">關閉</button>
+            </div>
+            <div id="buff-stats" style="color:#aaa; margin-bottom:15px; font-size:0.9em;"></div>
+            <div id="buff-content" style="display:flex; flex-direction:column; gap:10px;"></div>
         </div>
     </div>
 
@@ -116,6 +147,7 @@
                 <button id="confirm-no-btn" class="btn-cancel" onclick="UISystem.hideConfirmModal()">取消</button>
             </div>
         </div>
+
     </div>
 
     <!-- 主遊戲容器 -->
@@ -127,21 +159,30 @@
                 <button onclick="Game.showAchievements()" class="header-btn">🏆 成就</button>
                 <button onclick="Game.showCompendium()" class="header-btn btn-purple">📖 圖鑑</button>
                 <button onclick="AudioSystem.showSettings()" class="header-btn btn-dark settings-btn">⚙️ 設定</button>
+                <button onclick="Game.showAffixCompendium()" class="header-btn btn-purple">📜 詞綴</button>
+                <button onclick="Game.showBuffCompendium()" class="header-btn btn-purple">✨ Buff</button>
             </div>
             <div id="class-badge" class="class-badge"></div>
         </header>
 
         <div class="stats-grid">
+            <!-- 第一行：生命、深度、金幣 -->
             <div class="stat-item">
                 生命: <span id="hp-val">100</span> / <span id="max-hp-val">100</span>
                 <div class="health-bar-container">
                     <div class="health-bar" id="player-health-bar" style="width: 100%;"></div>
                 </div>
             </div>
-            <div class="stat-item">攻擊: <span id="atk-val">5</span></div>
-            <div class="stat-item">金幣: <span id="gold-val">100</span></div>
             <div class="stat-item">深度: <span id="depth-val">0</span> 層</div>
-            <div id="buff-display" title="點擊查看詳細效果">狀態: 無</div>
+            <div class="stat-item">金幣: <span id="gold-val">100</span></div>
+
+            <!-- 第二行：攻擊、防禦、爆擊 -->
+            <div class="stat-item">攻擊: <span id="atk-val">5</span></div>
+            <div class="stat-item">防禦: <span id="def-val">0</span></div>
+            <div class="stat-item">爆擊率: <span id="crit-val">5%</span></div>
+
+            <!-- 狀態顯示 -->
+            <div id="buff-display" title="點擊查看詳細效果" style="grid-column: 1 / -1;">狀態: 無</div>
         </div>
 
         <div id="event-display">

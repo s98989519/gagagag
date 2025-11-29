@@ -333,7 +333,7 @@ var ItemSystem = {
         } else if (item.type === 'armor') {
             baseDesc = `生命上限 +${item.val}`;
         } else if (item.type === 'shield') {
-            baseDesc = `抵擋 ${item.val} 次攻擊`;
+            baseDesc = `防禦力 +${item.def}`;
         } else if (item.type === 'loot') {
             baseDesc = `戰利品 (可高價出售)`;
         } else {
@@ -359,7 +359,13 @@ var ItemSystem = {
         const currentEquip = window.Player.equipment[newItem.type];
         if (!currentEquip) return '';
 
-        const diff = newItem.val - currentEquip.val;
+        let diff = 0;
+        if (newItem.type === 'shield') {
+            diff = (newItem.def || 0) - (currentEquip.def || 0);
+        } else {
+            diff = (newItem.val || 0) - (currentEquip.val || 0);
+        }
+
         if (diff === 0) {
             return '(=)';
         } else if (diff > 0) {
@@ -436,9 +442,11 @@ var ItemSystem = {
 
             window.Player.inventory.equipment.forEach((item, index) => {
                 if (item.type === type) {
-                    // 簡單比較數值，若有更複雜的評價標準可在此擴充
-                    if (item.val > maxVal) {
-                        maxVal = item.val;
+                    // 根據裝備類型選擇比較屬性
+                    const itemVal = (type === 'shield') ? (item.def || 0) : (item.val || 0);
+
+                    if (itemVal > maxVal) {
+                        maxVal = itemVal;
                         bestItemIndex = index;
                     }
                 }
@@ -447,7 +455,9 @@ var ItemSystem = {
             if (bestItemIndex !== -1) {
                 // 檢查是否比身上穿的還強（雖然鐵匠鋪出來通常是空的）
                 const current = window.Player.equipment[type];
-                if (!current || maxVal > current.val) {
+                const currentVal = current ? ((type === 'shield') ? (current.def || 0) : (current.val || 0)) : -1;
+
+                if (!current || maxVal > currentVal) {
                     this.equip(bestItemIndex, 'equipment');
                     equippedCount++;
                 }
