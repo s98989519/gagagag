@@ -1,0 +1,2738 @@
+﻿/* ===================================
+   幻想冒險 - 主樣式表
+   版本: v2.0 (功能進化版)
+   最後更新: 2025-11-27
+   =================================== */
+
+/* === CSS 變數定義 === */
+:root {
+    /* 主色調 */
+    --bg-color: #1a1a1a;
+    --panel-color: #2d2d2d;
+    --text-color: #e0e0e0;
+    --accent-color: #ff9800;
+    --border-radius: 8px;
+    --font-main: "Microsoft YaHei", "PingFang TC", "Heiti TC", "WenQuanYi Micro Hei", 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+
+    /* 稀有度顏色 */
+    --common: #b0b0b0;
+    --uncommon: #4caf50;
+    --rare: #2196f3;
+    --epic: #9c27b0;
+    --legendary: #ffd700;
+    --mythic: #ff0055;
+    --ultra: #00ffcc;
+
+    /* Buff 顏色 */
+    --buff-angel: #4fc3f7;
+    --buff-demon: #ef5350;
+}
+
+/* === 全局樣式 === */
+body {
+    font-family: var(--font-main);
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    min-height: 100vh;
+    overflow-x: hidden;
+}
+
+#game-container {
+    width: 100%;
+    max-width: 700px;
+    background-color: var(--panel-color);
+    padding: 20px;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+    display: flex;
+    flex-direction: column;
+    border-radius: 4px;
+    color: var(--accent-color);
+    margin: 20px auto;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    background: #222;
+    padding: 10px;
+    border-radius: var(--border-radius);
+    font-size: 0.9em;
+}
+
+.stat-item span {
+    font-weight: bold;
+    color: var(--accent-color);
+}
+
+#buff-display {
+    grid-column: span 2;
+    border-top: 1px solid #444;
+    padding-top: 5px;
+    margin-top: 5px;
+    font-size: 0.85em;
+    color: #aaa;
+    cursor: help;
+    transition: background 0.2s ease;
+}
+
+#buff-display:hover {
+    background: #333;
+}
+
+/* === Main Event Area === */
+#event-display {
+    min-height: 412px;
+    max-height: 412px;
+    overflow-y: auto;
+    background: #222;
+    border-radius: var(--border-radius);
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    border: 1px solid #444;
+    position: relative;
+}
+
+/* === Class Selection Modal === */
+#class-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.95);
+    z-index: 9999;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    padding: 20px;
+    box-sizing: border-box;
+    overflow-y: auto;
+}
+
+.class-options {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    max-width: 900px;
+    width: 100%;
+    margin: 0 auto;
+}
+
+@media (max-width: 768px) {
+    .class-options {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
+    }
+}
+
+@media (max-width: 480px) {
+    .class-options {
+        grid-template-columns: 1fr;
+    }
+}
+
+.class-card {
+    background: linear-gradient(135deg, #2d2d2d 0%, #1a1a1a 100%);
+    border: 2px solid #444;
+    border-radius: 10px;
+    padding: 20px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-align: center;
+    min-height: 150px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.class-card:hover {
+    border-color: #ff9800;
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(255, 152, 0, 0.3);
+    background: linear-gradient(135deg, #3d3d3d 0%, #2a2a2a 100%);
+}
+
+.class-title {
+    font-size: 1.5em;
+    font-weight: bold;
+    color: #ffd700;
+    margin-bottom: 10px;
+}
+
+.class-desc {
+    font-size: 0.95em;
+    color: #ccc;
+    line-height: 1.6;
+}
+
+
+.monster-icon {
+    font-size: 4em;
+    margin-bottom: 10px;
+    display: inline-block;
+    transition: transform 0.3s ease;
+    will-change: transform;
+}
+
+/* === Glow Effects === */
+.glow-blue {
+    filter: drop-shadow(0 0 10px #2196f3);
+}
+
+.glow-red {
+    filter: drop-shadow(0 0 15px #f44336);
+    transform: scale(1.1);
+    will-change: transform, filter;
+}
+
+.glow-purple {
+    filter: drop-shadow(0 0 20px #9c27b0);
+    animation: true-form-pulse 2s infinite;
+    transform: scale(1.3);
+    will-change: transform, filter;
+}
+
+@keyframes true-form-pulse {
+    0% {
+        filter: drop-shadow(0 0 20px #9c27b0);
+    }
+
+    50% {
+        filter: drop-shadow(0 0 40px #e040fb);
+    }
+
+    100% {
+        filter: drop-shadow(0 0 20px #9c27b0);
+    }
+}
+
+/* === Animations (效能優化版) === */
+@keyframes spawn-pop {
+    0% {
+        transform: scale(0);
+        opacity: 0;
+    }
+
+    70% {
+        transform: scale(1.1);
+        opacity: 1;
+    }
+
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+@keyframes damage-shake {
+    0% {
+        transform: translate(0, 0);
+        filter: none;
+    }
+
+    20% {
+        transform: translate(-10px, 0) rotate(-5deg);
+        filter: brightness(2) sepia(1) hue-rotate(-50deg) saturate(5);
+    }
+
+    40% {
+        transform: translate(10px, 0) rotate(5deg);
+    }
+
+    60% {
+        transform: translate(-5px, 0);
+    }
+
+    80% {
+        transform: translate(5px, 0);
+    }
+
+    100% {
+        transform: translate(0, 0);
+        filter: none;
+    }
+}
+
+@keyframes attack-lunge {
+    0% {
+        transform: translateY(0) scale(1);
+    }
+
+    30% {
+        transform: translateY(20px) scale(1.2);
+    }
+
+    100% {
+        transform: translateY(0) scale(1);
+    }
+}
+
+@keyframes screen-shake {
+    0% {
+        transform: translate(0, 0);
+    }
+
+    25% {
+        transform: translate(-5px, 5px);
+    }
+
+    50% {
+        transform: translate(5px, -5px);
+    }
+
+    75% {
+        transform: translate(-5px, -5px);
+    }
+
+    100% {
+        transform: translate(0, 0);
+    }
+}
+
+@keyframes float-up {
+    0% {
+        transform: translateY(0) scale(1);
+        opacity: 1;
+    }
+
+    50% {
+        transform: translateY(-30px) scale(1.2);
+        opacity: 1;
+    }
+
+    100% {
+        transform: translateY(-60px) scale(1);
+        opacity: 0;
+    }
+}
+
+/* 動畫類別 */
+.anim-spawn {
+    animation: spawn-pop 0.5s ease-out forwards;
+    will-change: transform, opacity;
+}
+
+.anim-damage {
+    animation: damage-shake 0.4s ease-in-out;
+    will-change: transform, filter;
+}
+
+.anim-lunge {
+    animation: attack-lunge 0.3s ease-in-out;
+    will-change: transform;
+}
+
+.anim-screen-shake {
+    animation: screen-shake 0.3s ease-in-out;
+    will-change: transform;
+}
+
+.floating-text {
+    position: absolute;
+    left: 50%;
+    top: 40%;
+    transform: translateX(-50%);
+    font-weight: bold;
+    font-size: 1.5em;
+    pointer-events: none;
+    text-shadow: 2px 2px 0 #000;
+    z-index: 100;
+    animation: float-up 1s ease-out forwards;
+    will-change: transform, opacity;
+}
+
+/* === Text Styles === */
+.damage-text {
+    color: #ff5252;
+    font-weight: bold;
+}
+
+.crit-text {
+    color: #ff0000;
+    font-size: 1.2em;
+    font-weight: bold;
+    text-shadow: 0 0 5px #fff;
+}
+
+.heal-text {
+    color: #69f0ae;
+}
+
+.gold-text {
+    color: #ffd700;
+}
+
+.block-text {
+    color: #2196f3;
+    font-weight: bold;
+}
+
+.pierce-text {
+    color: #ff9800;
+    font-weight: bold;
+}
+
+.angel-text {
+    color: var(--buff-angel);
+    font-weight: bold;
+}
+
+.demon-text {
+    color: var(--buff-demon);
+    font-weight: bold;
+}
+
+.mythic-text {
+    color: var(--mythic);
+    font-weight: bold;
+    text-shadow: 0 0 5px #fff;
+}
+
+/* === Controls === */
+#controls {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+button {
+    padding: 12px;
+    border: none;
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    font-size: 1em;
+    font-weight: bold;
+    transition: background 0.2s ease, transform 0.1s ease;
+    background: #444;
+    color: white;
+    will-change: transform;
+}
+
+button:hover {
+    background: #555;
+}
+
+button:active {
+    transform: scale(0.98);
+}
+
+button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.btn-primary {
+    background: var(--accent-color);
+    color: #000;
+}
+
+.btn-primary:hover {
+    background: #ffb74d;
+}
+
+/* === Inventory === */
+#inventory-section {
+    background: #222;
+    padding: 10px;
+    border-radius: var(--border-radius);
+}
+
+.equipment-slots {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 5px;
+    margin-bottom: 10px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #444;
+}
+
+.equip-slot {
+    flex: 1;
+    background: #333;
+    padding: 8px;
+    border-radius: 4px;
+    text-align: center;
+    font-size: 0.75em;
+    min-height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    border: 1px solid #444;
+    transition: background 0.2s ease;
+}
+
+.equip-slot:hover {
+    background: #3a3a3a;
+}
+
+.inv-container-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.inv-panel {
+    background: #2a2a2a;
+    border-radius: 4px;
+    padding: 5px;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid #444;
+    min-height: 150px;
+    min-width: 0;
+}
+
+.panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 5px;
+    padding-bottom: 3px;
+    border-bottom: 1px solid #444;
+}
+
+.panel-header h4 {
+    margin: 0;
+    font-size: 0.9em;
+    color: #ccc;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.panel-actions {
+    display: flex;
+    gap: 3px;
+}
+
+.icon-btn {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    font-size: 1em;
+    padding: 2px;
+    opacity: 0.7;
+    transition: opacity 0.2s;
+}
+
+.icon-btn:hover {
+    opacity: 1;
+    transform: scale(1.1);
+}
+
+.inv-container {
+    display: none;
+}
+
+.inv-col h4 {
+    margin: 0 0 5px 0;
+    font-size: 0.85em;
+    color: #888;
+    text-align: center;
+    border-bottom: 1px solid #444;
+    padding-bottom: 3px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+}
+
+/* === Sort Buttons === */
+.sort-btn {
+    padding: 2px 6px;
+    font-size: 0.7em;
+    background: #444;
+    border: 1px solid #555;
+    border-radius: 3px;
+    color: #aaa;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.sort-btn:hover {
+    background: #555;
+    color: #fff;
+    border-color: var(--accent-color);
+}
+
+.sort-btn.active {
+    background: var(--accent-color);
+    color: #000;
+    border-color: var(--accent-color);
+    font-weight: bold;
+}
+
+/* === Comparison Text === */
+.stat-increase {
+    color: #4caf50;
+    font-weight: bold;
+}
+
+.stat-decrease {
+    color: #f44336;
+    font-weight: bold;
+}
+
+.stat-equal {
+    color: #888;
+}
+
+.item-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-height: 150px;
+    overflow-y: auto;
+    min-height: 50px;
+    background: #2a2a2a;
+    padding: 5px;
+    border-radius: 4px;
+}
+
+.item {
+    flex-shrink: 0;
+    padding: 4px 8px;
+    background: #333;
+    border-radius: 3px;
+    font-size: 0.8em;
+    cursor: pointer;
+    border: 1px solid transparent;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    transition: background 0.2s ease;
+}
+
+.item:hover {
+    background: #444;
+}
+
+/* === Rarity Colors === */
+.rarity-common {
+    color: var(--common);
+    border-color: #555;
+}
+
+.rarity-uncommon {
+    color: var(--uncommon);
+    border-color: var(--uncommon);
+}
+
+.rarity-rare {
+    color: var(--rare);
+    border-color: var(--rare);
+}
+
+.rarity-epic {
+    color: var(--epic);
+    border-color: var(--epic);
+    box-shadow: 0 0 5px var(--epic);
+}
+
+.rarity-legendary {
+    color: var(--legendary);
+    border-color: var(--legendary);
+    box-shadow: 0 0 8px var(--legendary);
+    background: linear-gradient(45deg, #333, #443300);
+    animation: shine 2s infinite linear;
+}
+
+.rarity-mythic {
+    color: var(--mythic);
+    border-color: var(--mythic);
+    box-shadow: 0 0 15px var(--mythic);
+    background: #220011;
+    animation: shine 1s infinite linear;
+}
+
+.rarity-ultra {
+    color: var(--ultra);
+    border-color: var(--ultra);
+    box-shadow: 0 0 20px var(--ultra);
+    background: #001122;
+    animation: shine 0.5s infinite linear;
+}
+
+@keyframes shine {
+    0% {
+        border-color: var(--legendary);
+    }
+
+    50% {
+        border-color: #fff;
+    }
+
+    100% {
+        border-color: var(--legendary);
+    }
+}
+
+/* === Merchant Grid === */
+.merchant-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    width: 100%;
+    max-height: 150px;
+    overflow-y: auto;
+    padding-right: 5px;
+}
+
+/* 自定義滾動條 */
+.merchant-grid::-webkit-scrollbar {
+    width: 8px;
+}
+
+.merchant-grid::-webkit-scrollbar-track {
+    background: #222;
+    border-radius: 4px;
+}
+
+.merchant-grid::-webkit-scrollbar-thumb {
+    background: #555;
+    border-radius: 4px;
+}
+
+.merchant-grid::-webkit-scrollbar-thumb:hover {
+    background: #666;
+}
+
+.merchant-item {
+    display: flex;
+    flex-direction: column;
+    background: #333;
+    padding: 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    border: 1px solid #444;
+    transition: background 0.2s ease, transform 0.1s ease;
+}
+
+.merchant-item:hover {
+    background: #444;
+    transform: translateY(-2px);
+}
+
+.m-top {
+    display: flex;
+    justify-content: space-between;
+    font-weight: bold;
+}
+
+.m-desc {
+    font-size: 0.8em;
+    color: #aaa;
+    margin-top: 4px;
+}
+
+/* === Modals === */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.85);
+    z-index: 20000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Standardized Full Screen Modal */
+.full-screen-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.95);
+    z-index: 10001;
+    justify-content: center;
+    align-items: center;
+    overflow-y: auto;
+}
+
+.modal-container {
+    width: 100%;
+    max-width: 700px;
+    height: 100%;
+    background: #1a1a1a;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+}
+
+@media (min-width: 768px) {
+    .modal-container {
+        height: auto;
+        max-height: 90vh;
+        border-radius: 10px;
+        border: 1px solid #444;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.8);
+    }
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px;
+    background: #222;
+    border-bottom: 2px solid #444;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.modal-header h2 {
+    margin: 0;
+    color: white;
+    font-size: 1.2em;
+}
+
+.modal-close-btn {
+    background: #555;
+    padding: 8px 15px;
+    border: none;
+    border-radius: 5px;
+    color: white;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background 0.2s;
+}
+
+.modal-close-btn:hover {
+    background: #666;
+}
+
+.modal-content {
+    padding: 20px;
+    overflow-y: auto;
+    flex: 1;
+}
+
+/* Existing Modal overrides or removals
+#class-modal,
+#achieve-modal,
+#compendium-modal {
+    These will be refactored to use .full-screen-modal
+} 
+*/
+
+.class-options {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+    width: 100%;
+}
+
+.class-card {
+    background: #333;
+    padding: 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    border: 2px solid #555;
+    text-align: center;
+    transition: border-color 0.2s ease, background 0.2s ease, transform 0.2s ease;
+}
+
+.class-card:hover {
+    border-color: var(--accent-color);
+    background: #444;
+    transform: translateY(-5px);
+}
+
+.class-title {
+    font-size: 1.2em;
+    font-weight: bold;
+    color: var(--accent-color);
+    margin-bottom: 10px;
+}
+
+.class-desc {
+    font-size: 0.9em;
+    color: #ccc;
+}
+
+/* === Achievements & Compendium === */
+.achieve-list,
+.compendium-container {
+    width: 100%;
+    background: #222;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid #444;
+}
+
+.achieve-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    border-bottom: 1px solid #333;
+    opacity: 0.5;
+    transition: opacity 0.2s ease;
+}
+
+.achieve-item.unlocked {
+    opacity: 1;
+    background: #2a2a2a;
+}
+
+.achieve-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.achieve-name {
+    font-weight: bold;
+    font-size: 1.1em;
+}
+
+.achieve-cond {
+    font-size: 0.8em;
+    color: #aaa;
+}
+
+.achieve-badge {
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.8em;
+    font-weight: bold;
+}
+
+.compendium-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+    gap: 10px;
+    padding-top: 10px;
+}
+
+.c-item {
+    background: #333;
+    border: 1px solid #444;
+    border-radius: 4px;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    cursor: help;
+    min-height: 80px;
+    position: relative;
+    transition: background 0.2s ease, transform 0.1s ease;
+}
+
+.c-item:hover {
+    transform: scale(1.05);
+}
+
+.c-item.unlocked {
+    background: #2d2d2d;
+}
+
+.c-item.unknown {
+    background: #222;
+    border-color: #333;
+    opacity: 0.7;
+    filter: grayscale(100%);
+}
+
+.c-item.secret-hidden {
+    background: #000;
+    border-color: #000;
+    cursor: default;
+}
+
+.c-icon {
+    font-size: 2em;
+    margin-bottom: 5px;
+}
+
+.c-name {
+    font-size: 0.75em;
+    line-height: 1.2;
+    word-break: break-all;
+}
+
+.c-item.unknown .c-name {
+    color: #666;
+}
+
+/* === Health Bar Styles === */
+.health-bar-container {
+    width: 100%;
+    height: 8px;
+    background: #333;
+    border-radius: 4px;
+    overflow: hidden;
+    margin-top: 3px;
+    border: 1px solid #555;
+}
+
+.health-bar {
+    height: 100%;
+    background: linear-gradient(90deg, #4caf50, #8bc34a);
+    transition: width 0.3s ease, background 0.3s ease;
+    border-radius: 4px;
+    box-shadow: 0 0 10px rgba(76, 175, 80, 0.5);
+}
+
+.health-bar.low {
+    background: linear-gradient(90deg, #f44336, #ff5252);
+    box-shadow: 0 0 10px rgba(244, 67, 54, 0.7);
+}
+
+.health-bar.medium {
+    background: linear-gradient(90deg, #ff9800, #ffb74d);
+    box-shadow: 0 0 10px rgba(255, 152, 0, 0.5);
+}
+
+#enemy-health-container {
+    margin-top: 15px;
+    padding: 10px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 6px;
+}
+
+#enemy-health-label {
+    font-size: 0.85em;
+    color: #aaa;
+    margin-bottom: 5px;
+    text-align: center;
+}
+
+/* === Low Health Overlay === */
+.low-health-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 150;
+    box-shadow: inset 0 0 100px 20px rgba(255, 0, 0, 0.4);
+    animation: pulse-red 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse-red {
+
+    0%,
+    100% {
+        box-shadow: inset 0 0 100px 20px rgba(255, 0, 0, 0.3);
+    }
+
+    50% {
+        box-shadow: inset 0 0 120px 30px rgba(255, 0, 0, 0.6);
+    }
+}
+
+/* === Legendary Item Effect === */
+.effect-legendary {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 2000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: legendary-flash 2s ease-out forwards;
+}
+
+@keyframes legendary-flash {
+    0% {
+        background: radial-gradient(circle, rgba(255, 215, 0, 0.8) 0%, transparent 70%);
+    }
+
+    10% {
+        background: radial-gradient(circle, rgba(255, 255, 255, 0.9) 0%, rgba(255, 215, 0, 0.6) 40%, transparent 70%);
+    }
+
+    30% {
+        background: radial-gradient(circle, rgba(255, 215, 0, 0.7) 0%, transparent 70%);
+    }
+
+    100% {
+        background: transparent;
+    }
+}
+
+.legendary-beam {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background:
+        linear-gradient(0deg, transparent 0%, rgba(255, 215, 0, 0.1) 50%, transparent 100%),
+        linear-gradient(90deg, transparent 0%, rgba(255, 215, 0, 0.1) 50%, transparent 100%),
+        radial-gradient(circle at center, rgba(255, 215, 0, 0.3) 0%, transparent 60%);
+    animation: beam-rotate 2s ease-out forwards, beam-fade 2s ease-out forwards;
+}
+
+@keyframes beam-rotate {
+    0% {
+        transform: rotate(0deg) scale(0.5);
+        opacity: 0;
+    }
+
+    20% {
+        opacity: 1;
+    }
+
+    100% {
+        transform: rotate(180deg) scale(1.5);
+        opacity: 0;
+    }
+}
+
+@keyframes beam-fade {
+
+    0%,
+    20% {
+        filter: brightness(2);
+    }
+
+    100% {
+        filter: brightness(1);
+    }
+}
+
+.legendary-text {
+    position: absolute;
+    font-size: 3em;
+    font-weight: bold;
+    color: #ffd700;
+    text-shadow:
+        0 0 10px #fff,
+        0 0 20px #ffd700,
+        0 0 30px #ffd700,
+        0 0 40px #ffd700;
+    animation: legendary-text-appear 2s ease-out forwards;
+    z-index: 301;
+}
+
+@keyframes legendary-text-appear {
+    0% {
+        transform: scale(0) rotate(-180deg);
+        opacity: 0;
+    }
+
+    30% {
+        transform: scale(1.3) rotate(0deg);
+        opacity: 1;
+    }
+
+    70% {
+        transform: scale(1) rotate(0deg);
+        opacity: 1;
+    }
+
+    100% {
+        transform: scale(0.8) rotate(0deg);
+        opacity: 0;
+    }
+}
+
+/* === Utility Classes === */
+.hidden {
+    display: none !important;
+}
+
+/* === Confirm Modal === */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.confirm-modal-content {
+    background: #2d2d2d;
+    border: 2px solid #444;
+    border-radius: 10px;
+    padding: 20px;
+    width: 90%;
+    max-width: 400px;
+    text-align: center;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.8);
+}
+
+.confirm-modal-content h3 {
+    margin-top: 0;
+    color: #fff;
+    border-bottom: 1px solid #444;
+    padding-bottom: 10px;
+    margin-bottom: 15px;
+}
+
+.confirm-modal-content p {
+    color: #ddd;
+    margin-bottom: 20px;
+    font-size: 1.1em;
+}
+
+.modal-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+}
+
+.btn-confirm {
+    background: #2196f3;
+    color: white;
+    border: none;
+    padding: 8px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1em;
+    transition: background 0.2s;
+}
+
+.btn-confirm:hover {
+    background: #1976d2;
+}
+
+.btn-cancel {
+    background: #555;
+    color: white;
+    border: none;
+    padding: 8px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1em;
+    transition: background 0.2s;
+}
+
+.btn-cancel:hover {
+    background: #666;
+}
+
+.btn-red {
+    background: #f44336;
+    color: white;
+    border: none;
+}
+
+.btn-red:hover {
+    background: #d32f2f;
+}
+
+/* === Mobile Responsive === */
+@media (max-width: 768px) {
+    .inv-container {
+        grid-template-columns: 1fr;
+        /* 行為一列 */
+        gap: 15px;
+    }
+
+    .inv-col {
+        background: rgba(0, 0, 0, 0.2);
+        padding: 10px;
+        border-radius: 5px;
+        margin-bottom: 10px;
+    }
+
+    .inv-col h4 {
+        flex-wrap: wrap;
+        justify-content: space-between;
+        padding: 5px;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 4px;
+    }
+
+    .sort-btn {
+        padding: 6px 10px;
+        /* 增大觸控區域 */
+        font-size: 0.85em;
+        margin-left: 5px;
+    }
+
+    .equipment-slots {
+        gap: 5px;
+    }
+
+    .equip-slot {
+        padding: 10px 5px;
+        font-size: 0.8em;
+    }
+
+    /* 確認模態框在手機上更寬 */
+    .confirm-modal-content {
+        width: 95%;
+        padding: 15px;
+    }
+
+    .modal-buttons {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+
+    @keyframes beam-rotate {
+        0% {
+            transform: rotate(0deg) scale(0.5);
+            opacity: 0;
+        }
+
+        20% {
+            opacity: 1;
+        }
+
+        100% {
+            transform: rotate(180deg) scale(1.5);
+            opacity: 0;
+        }
+    }
+
+    @keyframes beam-fade {
+
+        0%,
+        20% {
+            filter: brightness(2);
+        }
+
+        100% {
+            filter: brightness(1);
+        }
+    }
+
+    .effect-text.legendary {
+        position: relative;
+        font-size: 5rem;
+        font-weight: bold;
+        color: #ffd700;
+        text-shadow:
+            0 0 10px #fff,
+            0 0 20px #ffd700,
+            0 0 30px #ffd700,
+            0 0 40px #ffd700;
+        animation: legendary-text-appear 2s ease-out forwards;
+        z-index: 2001;
+        width: 100%;
+        text-align: center;
+    }
+
+    @keyframes legendary-text-appear {
+        0% {
+            transform: scale(0) rotate(-180deg);
+            opacity: 0;
+        }
+
+        30% {
+            transform: scale(1.3) rotate(0deg);
+            opacity: 1;
+        }
+
+        70% {
+            transform: scale(1) rotate(0deg);
+            opacity: 1;
+        }
+
+        100% {
+            transform: scale(0.8) rotate(0deg);
+            opacity: 0;
+        }
+    }
+
+    /* === Utility Classes === */
+    .hidden {
+        display: none !important;
+    }
+
+    /* === Confirm Modal === */
+    .modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.7);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+    }
+
+    .confirm-modal-content {
+        background: #2d2d2d;
+        border: 2px solid #444;
+        border-radius: 10px;
+        padding: 20px;
+        width: 90%;
+        max-width: 400px;
+        text-align: center;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.8);
+    }
+
+    .confirm-modal-content h3 {
+        margin-top: 0;
+        color: #fff;
+        border-bottom: 1px solid #444;
+        padding-bottom: 10px;
+        margin-bottom: 15px;
+    }
+
+    .confirm-modal-content p {
+        color: #ddd;
+        margin-bottom: 20px;
+        font-size: 1.1em;
+    }
+
+    .modal-buttons {
+        display: flex;
+        justify-content: center;
+        gap: 15px;
+    }
+
+    .btn-confirm {
+        background: #2196f3;
+        color: white;
+        border: none;
+        padding: 8px 20px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 1em;
+        transition: background 0.2s;
+    }
+
+    .btn-confirm:hover {
+        background: #1976d2;
+    }
+
+    .btn-cancel {
+        background: #555;
+        color: white;
+        border: none;
+        padding: 8px 20px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 1em;
+        transition: background 0.2s;
+    }
+
+    .btn-cancel:hover {
+        background: #666;
+    }
+
+    .btn-red {
+        background: #f44336;
+        color: white;
+        border: none;
+    }
+
+    .btn-red:hover {
+        background: #d32f2f;
+    }
+
+
+}
+
+.stats-grid {
+    grid-template-columns: repeat(3, 1fr) !important;
+}
+
+/* UI Layout Fixes */
+#event-display {
+    min-height: 412px;
+    max-height: 412px;
+    overflow-y: auto;
+}
+
+#controls {
+    margin-top: 10px;
+    border-top: 1px solid #444;
+    padding-top: 10px;
+}
+
+/* Toast Notification */
+.toast-notification {
+    position: absolute;
+    top: 20%;
+    left: 50%;
+    transform: translateX(-50%) translateY(-20px);
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 10px 20px;
+    border-radius: 5px;
+    border: 1px solid #444;
+    opacity: 0;
+    transition: opacity 0.3s, transform 0.3s;
+    z-index: 2000;
+    pointer-events: none;
+    font-weight: bold;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+}
+
+.toast-notification.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+}
+
+.toast-notification.warning {
+    border-color: #ff9800;
+    color: #ff9800;
+}
+
+.toast-notification.error {
+    border-color: #f44336;
+    color: #f44336;
+}
+
+.toast-notification.success {
+    border-color: #4caf50;
+    color: #4caf50;
+}
+
+#event-display {
+    justify-content: flex-start !important;
+    padding-top: 20px;
+}
+
+/* New Combat Styles */
+.glow-gold {
+    box-shadow: 0 0 10px #ffeb3b, 0 0 20px #ffeb3b !important;
+    border-color: #ffeb3b !important;
+    animation: pulse-gold 1.5s infinite;
+}
+
+@keyframes pulse-gold {
+    0% {
+        box-shadow: 0 0 10px #ffeb3b;
+    }
+
+    50% {
+        box-shadow: 0 0 20px #ffeb3b, 0 0 30px #ffeb3b;
+    }
+
+    100% {
+        box-shadow: 0 0 10px #ffeb3b;
+    }
+}
+
+.btn-ultimate {
+    background: linear-gradient(45deg, #ff6f00, #ffca28);
+    color: white;
+    border: 1px solid #ffca28;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    text-shadow: 1px 1px 2px black;
+    transition: all 0.3s ease;
+}
+
+.btn-ultimate:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 15px #ffca28;
+}
+
+.btn-ultimate:disabled {
+    background: #555;
+    border-color: #777;
+    color: #aaa;
+    cursor: not-allowed;
+    box-shadow: none;
+    transform: none;
+}
+
+
+#event-icon {
+    font-size: 80px;
+    margin-bottom: 20px;
+    width: 120px;
+    height: 120px;
+    line-height: 120px;
+    margin: 0 auto 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.event-image {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+/* === Achievement Items === */
+.achieve-item {
+    background: #2a2a2a;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    border: 1px solid #444;
+    transition: all 0.2s;
+    opacity: 0.6;
+    filter: grayscale(0.8);
+}
+
+.achieve-item.unlocked {
+    opacity: 1;
+    border-color: #ffd700;
+    filter: none;
+    box-shadow: 0 0 10px rgba(255, 215, 0, 0.1);
+    background: linear-gradient(135deg, #333 0%, #222 100%);
+}
+
+.achieve-icon {
+    font-size: 2em;
+    min-width: 50px;
+    text-align: center;
+}
+
+.achieve-info {
+    flex: 1;
+}
+
+.achieve-title {
+    font-weight: bold;
+    font-size: 1.1em;
+    color: #fff;
+    margin-bottom: 5px;
+}
+
+.achieve-desc {
+    font-size: 0.9em;
+    color: #aaa;
+}
+
+.achieve-date {
+    font-size: 1.2em;
+}
+
+/* --- 魅魔莉莉絲 CSS Art --- */
+.demon-wrapper {
+    --skin-color: #ffcdd8;
+    --hair-color: #3d2b3d;
+    --shadow-color: rgba(0, 0, 0, 0.1);
+
+    width: 100px;
+    height: 100px;
+    position: relative;
+    margin: 0 auto;
+    overflow: visible;
+    pointer-events: none;
+}
+
+.demon-container * {
+    position: absolute;
+    box-sizing: border-box;
+}
+
+.demon-container {
+    position: absolute;
+    width: 300px;
+    height: 350px;
+
+    left: 50%;
+    top: 50%;
+    margin-left: -150px;
+    margin-top: -175px;
+
+    transform: scale(0.25);
+    transform-origin: center center;
+    top: 60%;
+}
+
+/* 1. 雙馬尾 */
+.twin-tail {
+    width: 35px;
+    height: 170px;
+    background: var(--hair-color);
+    top: 120px;
+    z-index: 0;
+    border-radius: 20px;
+}
+
+.twin-tail.left {
+    left: 45px;
+    transform-origin: top right;
+    transform: rotate(20deg);
+}
+
+.twin-tail.right {
+    right: 45px;
+    transform-origin: top left;
+    transform: rotate(-20deg);
+}
+
+/* 2. 尾巴 */
+.tail {
+    width: 120px;
+    height: 100px;
+    top: 220px;
+    left: 150px;
+    z-index: 2;
+}
+
+.tail-curve {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    border: 8px solid transparent;
+    border-bottom-color: var(--hair-color);
+    border-right-color: var(--hair-color);
+    transform: rotate(45deg);
+}
+
+.tail-tip {
+    width: 25px;
+    height: 25px;
+    background: var(--hair-color);
+    bottom: -5px;
+    right: -15px;
+    transform: rotate(45deg);
+    border-radius: 3px;
+}
+
+/* 3. 身體 */
+.body-shape {
+    width: 90px;
+    height: 100px;
+    background: var(--hair-color);
+    top: 200px;
+    left: 105px;
+    border-radius: 50% 50% 40% 40% / 60% 60% 30% 30%;
+    z-index: 5;
+}
+
+.collar {
+    width: 40px;
+    height: 20px;
+    background: #fff;
+    top: 0px;
+    left: 25px;
+    border-radius: 0 0 50% 50%;
+}
+
+/* 4. 小手手 */
+.hands {
+    top: 215px;
+    left: 105px;
+    width: 90px;
+    height: 30px;
+    z-index: 6;
+}
+
+.hand {
+    width: 30px;
+    height: 30px;
+    background: var(--skin-color);
+    border-radius: 50%;
+    top: 0;
+    box-shadow: 0 2px 5px var(--shadow-color);
+}
+
+.hand.left {
+    left: -15px;
+}
+
+.hand.right {
+    right: -15px;
+}
+
+/* 5. 頭部 */
+.head {
+    width: 180px;
+    height: 170px;
+    background: var(--skin-color);
+    border-radius: 50% 50% 45% 45% / 55% 55% 45% 45%;
+    top: 50px;
+    left: 60px;
+    z-index: 10;
+    box-shadow: 0 5px 15px var(--shadow-color);
+}
+
+.hair-bangs {
+    width: 190px;
+    height: 80px;
+    background: var(--hair-color);
+    top: -10px;
+    left: -5px;
+    border-radius: 50% 50% 20% 20% / 70% 70% 30% 30%;
+    z-index: 11;
+}
+
+.hair-side {
+    width: 50px;
+    height: 100px;
+    background: var(--hair-color);
+    top: 50px;
+    z-index: 9;
+}
+
+.hair-side.left {
+    left: -10px;
+    border-radius: 50% 0 0 50%;
+    transform: rotate(5deg);
+}
+
+.hair-side.right {
+    right: -10px;
+    border-radius: 0 50% 50% 0;
+    transform: rotate(-5deg);
+}
+
+.horn {
+    width: 35px;
+    height: 55px;
+    background: var(--hair-color);
+    top: -35px;
+    z-index: 8;
+}
+
+.horn.left {
+    left: 30px;
+    border-radius: 100% 0 0 0;
+    transform: rotate(-15deg);
+}
+
+.horn.right {
+    right: 30px;
+    border-radius: 0 100% 0 0;
+    transform: rotate(15deg);
+}
+
+/* 動畫 */
+@keyframes lilith-pulse {
+    0% {
+        filter: drop-shadow(0 0 2px rgba(255, 192, 203, 0.5));
+    }
+
+    50% {
+        filter: drop-shadow(0 0 15px rgba(255, 20, 147, 0.9));
+    }
+
+    100% {
+        filter: drop-shadow(0 0 2px rgba(255, 192, 203, 0.5));
+    }
+}
+
+.lilith-glow {
+    animation: lilith-pulse 3s infinite ease-in-out;
+}
+
+/* =========================================
+   煉獄模式特效 (Inferno Mode Visuals)
+   ========================================= */
+
+/* 背景動畫特效 */
+body.inferno-mode {
+    --bg-color: #050000;
+    --panel-color: #1a0505;
+    --text-color: #ffcccc;
+    --accent-color: #ff5252;
+    --border-radius: 8px;
+
+    background-color: #050000;
+    background-image: repeating-linear-gradient(45deg,
+            #050000,
+            #050000 10px,
+            #110000 10px,
+            #110000 20px);
+}
+
+/* 煉獄模式下的容器特效 */
+body.inferno-mode #game-container {
+    box-shadow: 0 0 20px rgba(255, 0, 0, 0.2);
+    border: 1px solid #330000;
+}
+
+/* 統計區塊煉獄風 */
+body.inferno-mode .stats-grid {
+    background: #220000;
+    border: 1px solid #550000;
+}
+
+/* 物品欄位煉獄風 */
+body.inferno-mode .equip-slot {
+    background: #331111;
+    border-color: #550000;
+}
+
+/* 發光特效 */
+.glow-inferno {
+    animation: glow-red-pulse 2s infinite;
+}
+
+@keyframes glow-red-pulse {
+    0% {
+        box-shadow: 0 0 5px #ff0000;
+    }
+
+    50% {
+        box-shadow: 0 0 20px #ff0000;
+    }
+
+    100% {
+        box-shadow: 0 0 5px #ff0000;
+    }
+}
+
+/* === 魅魔莉莉絲 CSS Art (提取自 參考.html) === */
+.demon-wrapper {
+    --skin-color: #ffcdd8;
+    --hair-color: #3d2b3d;
+    --shadow-color: rgba(0, 0, 0, 0.1);
+
+    /* [修正] 使用相對定位容器，取消 flex 以避免排版推擠 */
+    width: 100px;
+    height: 100px;
+    position: relative;
+    margin: 0 auto;
+    /* 確保 wrapper 本身居中 */
+    overflow: visible;
+    pointer-events: none;
+}
+
+.demon-container * {
+    position: absolute;
+    box-sizing: border-box;
+}
+
+.demon-container {
+    /* [修正] 改為絕對定位，強制置中 */
+    position: absolute;
+    width: 300px;
+    height: 350px;
+
+    /* 絕對置中技巧 */
+    left: 50%;
+    top: 50%;
+    margin-left: -150px;
+    /* 寬度的一半 */
+    margin-top: -175px;
+    /* 高度的一半 */
+
+    /* 縮放 */
+    transform: scale(0.25);
+    transform-origin: center center;
+    /* 從中心縮放 */
+
+    /* 微調垂直位置 */
+    top: 60%;
+}
+
+/* --- 1. 雙馬尾 --- */
+.twin-tail {
+    width: 35px;
+    height: 170px;
+    background: var(--hair-color);
+    top: 120px;
+    z-index: 0;
+    border-radius: 20px;
+}
+
+.twin-tail.left {
+    left: 45px;
+    transform-origin: top right;
+    transform: rotate(20deg);
+}
+
+.twin-tail.right {
+    right: 45px;
+    transform-origin: top left;
+    transform: rotate(-20deg);
+}
+
+/* --- 2. 尾巴 --- */
+.tail {
+    width: 120px;
+    height: 100px;
+    top: 220px;
+    left: 150px;
+    z-index: 2;
+}
+
+.tail-curve {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    border: 8px solid transparent;
+    border-bottom-color: var(--hair-color);
+    border-right-color: var(--hair-color);
+    transform: rotate(45deg);
+}
+
+.tail-tip {
+    width: 25px;
+    height: 25px;
+    background: var(--hair-color);
+    bottom: -5px;
+    right: -15px;
+    transform: rotate(45deg);
+    border-radius: 3px;
+}
+
+/* --- 3. 身體 --- */
+.body-shape {
+    width: 90px;
+    height: 100px;
+    background: var(--hair-color);
+    top: 200px;
+    left: 105px;
+    border-radius: 50% 50% 40% 40% / 60% 60% 30% 30%;
+    z-index: 5;
+}
+
+.collar {
+    width: 40px;
+    height: 20px;
+    background: #fff;
+    top: 0px;
+    left: 25px;
+    border-radius: 0 0 50% 50%;
+}
+
+/* --- 4. 小手手 --- */
+.hands {
+    top: 215px;
+    left: 105px;
+    width: 90px;
+    height: 30px;
+    z-index: 6;
+}
+
+.hand {
+    width: 30px;
+    height: 30px;
+    background: var(--skin-color);
+    border-radius: 50%;
+    top: 0;
+    box-shadow: 0 2px 5px var(--shadow-color);
+}
+
+.hand.left {
+    left: -15px;
+}
+
+.hand.right {
+    right: -15px;
+}
+
+/* --- 5. 頭部 --- */
+.head {
+    width: 180px;
+    height: 170px;
+    background: var(--skin-color);
+    border-radius: 50% 50% 45% 45% / 55% 55% 45% 45%;
+    top: 50px;
+    left: 60px;
+    z-index: 10;
+    box-shadow: 0 5px 15px var(--shadow-color);
+}
+
+.hair-bangs {
+    width: 190px;
+    height: 80px;
+    background: var(--hair-color);
+    top: -10px;
+    left: -5px;
+    border-radius: 50% 50% 20% 20% / 70% 70% 30% 30%;
+    z-index: 11;
+}
+
+.hair-side {
+    width: 50px;
+    height: 100px;
+    background: var(--hair-color);
+    top: 50px;
+    z-index: 9;
+}
+
+.hair-side.left {
+    left: -10px;
+    border-radius: 50% 0 0 50%;
+    transform: rotate(5deg);
+}
+
+.hair-side.right {
+    right: -10px;
+    border-radius: 0 50% 50% 0;
+    transform: rotate(-5deg);
+}
+
+.horn {
+    width: 35px;
+    height: 55px;
+    background: var(--hair-color);
+    top: -35px;
+    z-index: 8;
+}
+
+.horn.left {
+    left: 30px;
+    border-radius: 100% 0 0 0;
+    transform: rotate(-15deg);
+}
+
+.horn.right {
+    right: 30px;
+    border-radius: 0 100% 0 0;
+    transform: rotate(15deg);
+}
+
+/* 發光特效 */
+.lilith-glow {
+    filter: drop-shadow(0 0 15px #ff69b4);
+    animation: lilith-pulse 2s infinite ease-in-out;
+}
+
+@keyframes lilith-pulse {
+    0% {
+        filter: drop-shadow(0 0 10px #ff69b4);
+    }
+
+    50% {
+        filter: drop-shadow(0 0 25px #ff1493);
+        transform: scale(1.05);
+    }
+
+    100% {
+        filter: drop-shadow(0 0 10px #ff69b4);
+    }
+}
+
+/* --- [New] 稀有度特效樣式 --- */
+
+/* 神話 (Mythic) - 紅色煉獄風格 */
+.effect-mythic {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 5em;
+    font-weight: bold;
+    color: #ff3300;
+    text-shadow: 0 0 10px #ff0000, 0 0 20px #8b0000;
+    z-index: 2000;
+    animation: mythic-pop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275), mythic-shake 0.1s infinite;
+    pointer-events: none;
+    background: radial-gradient(circle, rgba(139, 0, 0, 0.8) 0%, rgba(0, 0, 0, 0) 70%);
+    padding: 50px;
+    border-radius: 50%;
+}
+
+@keyframes mythic-pop {
+    0% {
+        transform: translate(-50%, -50%) scale(0);
+        opacity: 0;
+    }
+
+    50% {
+        transform: translate(-50%, -50%) scale(1.2);
+        opacity: 1;
+    }
+
+    100% {
+        transform: translate(-50%, -50%) scale(1);
+        opacity: 1;
+    }
+}
+
+@keyframes mythic-shake {
+    0% {
+        transform: translate(-51%, -51%) scale(1);
+    }
+
+    50% {
+        transform: translate(-49%, -49%) scale(1);
+    }
+
+    100% {
+        transform: translate(-51%, -51%) scale(1);
+    }
+}
+
+/* 終極 (Ultra) - 宇宙/彩虹風格 */
+.effect-ultra {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 6em;
+    font-weight: 900;
+    /* Fallback */
+    color: #ff00c8;
+    background: linear-gradient(45deg, #ff0000, #ff7300, #fffb00, #48ff00, #00ffd5, #002bff, #7a00ff, #ff00c8, #ff0000);
+    background-size: 400%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    z-index: 2001;
+    animation: ultra-pop 2s ease-out, ultra-glow 2s linear infinite;
+    pointer-events: none;
+    text-shadow: 0 0 30px rgba(255, 255, 255, 0.8);
+}
+
+@keyframes ultra-pop {
+    0% {
+        transform: translate(-50%, -50%) scale(0) rotate(-180deg);
+        opacity: 0;
+        filter: blur(20px);
+    }
+
+    40% {
+        transform: translate(-50%, -50%) scale(1.5) rotate(0deg);
+        opacity: 1;
+        filter: blur(0);
+    }
+
+    60% {
+        transform: translate(-50%, -50%) scale(1.5) rotate(0deg);
+    }
+
+    100% {
+        transform: translate(-50%, -50%) scale(1.5) rotate(0deg);
+        opacity: 0;
+        filter: blur(10px);
+    }
+}
+
+@keyframes ultra-glow {
+    0% {
+        background-position: 0% 50%;
+        filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.5));
+    }
+
+    50% {
+        background-position: 100% 50%;
+        filter: drop-shadow(0 0 30px rgba(255, 255, 255, 1));
+    }
+
+    100% {
+        background-position: 0% 50%;
+        filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.5));
+    }
+}
+
+/* === Legendary Reveal Animation V3 (Premium God-Tier) === */
+.legendary-reveal-container {
+    padding: 40px 20px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    border-radius: 16px;
+    background: linear-gradient(135deg, #0f0518 0%, #1a0b2e 50%, #000000 100%);
+    box-shadow: 0 0 50px rgba(138, 43, 226, 0.5), inset 0 0 100px rgba(0, 0, 0, 0.8);
+    border: 3px solid #d4af37;
+    /* Gold Border */
+    font-family: 'Times New Roman', serif;
+}
+
+/* Rotating God Rays */
+.legendary-rays {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 250%;
+    height: 250%;
+    background: conic-gradient(from 0deg,
+            transparent 0%,
+            rgba(255, 215, 0, 0.1) 10%,
+            transparent 20%,
+            rgba(218, 112, 214, 0.1) 30%,
+            transparent 40%,
+            rgba(255, 215, 0, 0.1) 50%,
+            transparent 60%,
+            rgba(218, 112, 214, 0.1) 70%,
+            transparent 80%,
+            rgba(255, 215, 0, 0.1) 90%,
+            transparent 100%);
+    transform: translate(-50%, -50%);
+    animation: rotate-rays-premium 20s linear infinite;
+    z-index: 1;
+    pointer-events: none;
+    mix-blend-mode: screen;
+}
+
+/* Floating Light Particles */
+.legendary-particles {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 2;
+    pointer-events: none;
+    background-image:
+        radial-gradient(circle at 20% 30%, rgba(255, 215, 0, 0.4) 1px, transparent 2px),
+        radial-gradient(circle at 80% 10%, rgba(255, 255, 255, 0.4) 1px, transparent 2px),
+        radial-gradient(circle at 40% 70%, rgba(218, 112, 214, 0.4) 1px, transparent 2px),
+        radial-gradient(circle at 90% 80%, rgba(255, 215, 0, 0.4) 1px, transparent 2px);
+    background-size: 150% 150%;
+    animation: particle-float 10s ease-in-out infinite alternate;
+}
+
+.legendary-icon-container {
+    position: relative;
+    z-index: 10;
+    margin: 30px auto 40px;
+    width: 120px;
+    height: 120px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* The Crown Icon */
+.legendary-icon {
+    font-size: 8em;
+    /* Massive */
+    filter: drop-shadow(0 0 25px rgba(255, 215, 0, 0.8));
+    animation: icon-float-premium 4s ease-in-out infinite;
+    position: relative;
+    z-index: 12;
+}
+
+/* Divine Halo behind Icon */
+.legendary-halo {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 180px;
+    height: 180px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255, 215, 0, 0.3) 0%, transparent 70%);
+    box-shadow: 0 0 60px rgba(138, 43, 226, 0.4);
+    z-index: 11;
+    animation: halo-pulse-premium 3s ease-in-out infinite;
+}
+
+.legendary-title {
+    font-size: 3em;
+    font-weight: 900;
+    /* Fallback color if gradient fails */
+    color: #ffd700;
+    background: linear-gradient(to bottom, #fff 0%, #ffd700 50%, #b8860b 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    /* Standard text-fill-color does not exist, use color transparent for fallback if supported or rely on webkit */
+
+    text-shadow: 0 0 30px rgba(255, 215, 0, 0.3);
+    margin-bottom: 5px;
+    position: relative;
+    z-index: 10;
+    letter-spacing: 4px;
+    animation: text-reveal-premium 1s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+    transform: translateY(20px);
+    opacity: 0;
+}
+
+.legendary-subtitle {
+    font-size: 1.2em;
+    color: #e1bee7;
+    margin-bottom: 25px;
+    position: relative;
+    z-index: 10;
+    letter-spacing: 6px;
+    text-transform: uppercase;
+    font-weight: bold;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
+    animation: text-reveal-premium 1s cubic-bezier(0.2, 0.8, 0.2, 1) 0.3s forwards;
+    transform: translateY(20px);
+    opacity: 0;
+    border-top: 1px solid rgba(255, 215, 0, 0.3);
+    border-bottom: 1px solid rgba(255, 215, 0, 0.3);
+    display: inline-block;
+    padding: 5px 20px;
+    background: rgba(0, 0, 0, 0.3);
+}
+
+.legendary-desc {
+    color: #ccc;
+    font-size: 1em;
+    position: relative;
+    z-index: 10;
+    font-style: italic;
+    line-height: 1.6;
+    animation: text-reveal-premium 1s cubic-bezier(0.2, 0.8, 0.2, 1) 0.6s forwards;
+    transform: translateY(20px);
+    opacity: 0;
+}
+
+/* Animations */
+@keyframes rotate-rays-premium {
+    0% {
+        transform: translate(-50%, -50%) rotate(0deg);
+    }
+
+    100% {
+        transform: translate(-50%, -50%) rotate(360deg);
+    }
+}
+
+@keyframes icon-float-premium {
+    0% {
+        transform: translateY(0) scale(1);
+        filter: drop-shadow(0 0 25px rgba(255, 215, 0, 0.6));
+    }
+
+    50% {
+        transform: translateY(-15px) scale(1.05);
+        filter: drop-shadow(0 0 45px rgba(255, 215, 0, 0.9));
+    }
+
+    100% {
+        transform: translateY(0) scale(1);
+        filter: drop-shadow(0 0 25px rgba(255, 215, 0, 0.6));
+    }
+}
+
+@keyframes halo-pulse-premium {
+    0% {
+        transform: translate(-50%, -50%) scale(0.9);
+        opacity: 0.5;
+    }
+
+    50% {
+        transform: translate(-50%, -50%) scale(1.1);
+        opacity: 0.8;
+    }
+
+    100% {
+        transform: translate(-50%, -50%) scale(0.9);
+        opacity: 0.5;
+    }
+}
+
+@keyframes text-reveal-premium {
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+@keyframes particle-float {
+    0% {
+        background-position: 0% 0%;
+    }
+
+    100% {
+        background-position: 100% 100%;
+    }
+}
+
+/* === Inferno Reveal Animation (Biblical Variant) === */
+.inferno-reveal-container {
+    padding: 40px 20px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    border-radius: 16px;
+    background: linear-gradient(135deg, #180505 0%, #2e0b0b 50%, #000000 100%);
+    box-shadow: 0 0 50px rgba(255, 69, 0, 0.5), inset 0 0 100px rgba(0, 0, 0, 0.9);
+    border: 3px solid #ff4500;
+    /* Red-Orange Border */
+    font-family: 'Times New Roman', serif;
+}
+
+/* Magma Rays */
+/* Magma Rays */
+.inferno-rays {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 250%;
+    height: 250%;
+    background: conic-gradient(from 0deg,
+            transparent 0%,
+            rgba(255, 69, 0, 0.15) 10%,
+            transparent 20%,
+            rgba(139, 0, 0, 0.15) 30%,
+            transparent 40%,
+            rgba(255, 69, 0, 0.15) 50%,
+            transparent 60%,
+            rgba(139, 0, 0, 0.15) 70%,
+            transparent 80%,
+            rgba(255, 69, 0, 0.15) 90%,
+            transparent 100%);
+    transform: translate(-50%, -50%);
+    animation: rotate-rays-premium 25s linear infinite reverse;
+    /* Reverse rotation for chaos */
+    z-index: 1;
+    pointer-events: none;
+    mix-blend-mode: screen;
+}
+
+/* Ember Particles */
+.inferno-particles {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 2;
+    pointer-events: none;
+    background-image:
+        radial-gradient(circle at 20% 80%, rgba(255, 140, 0, 0.6) 1px, transparent 2px),
+        radial-gradient(circle at 80% 90%, rgba(255, 69, 0, 0.6) 1px, transparent 2px),
+        radial-gradient(circle at 50% 50%, rgba(255, 0, 0, 0.4) 1px, transparent 2px),
+        radial-gradient(circle at 10% 40%, rgba(255, 165, 0, 0.5) 1px, transparent 2px);
+    background-size: 150% 150%;
+    animation: particle-float 6s linear infinite;
+    /* Faster chaotic movement */
+}
+
+/* Hellfire Halo */
+.inferno-halo {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 180px;
+    height: 180px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255, 69, 0, 0.4) 0%, transparent 70%);
+    box-shadow: 0 0 80px rgba(255, 0, 0, 0.6);
+    z-index: 11;
+    animation: halo-pulse-premium 1.5s ease-in-out infinite;
+    /* Faster pulse */
+}
+
+.inferno-title {
+    font-size: 3em;
+    font-weight: 900;
+    /* Fallback */
+    color: #ff4500;
+    background: linear-gradient(to bottom, #fff 0%, #ff4500 50%, #8b0000 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: 0 0 30px rgba(255, 0, 0, 0.5);
+    margin-bottom: 5px;
+    position: relative;
+    z-index: 10;
+    letter-spacing: 4px;
+    animation: text-reveal-premium 1s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+    transform: translateY(20px);
+    opacity: 0;
+}
+
+.inferno-subtitle {
+    font-size: 1.2em;
+    color: #ffcccb;
+    margin-bottom: 25px;
+    position: relative;
+    z-index: 10;
+    letter-spacing: 6px;
+    text-transform: uppercase;
+    font-weight: bold;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.9);
+    animation: text-reveal-premium 1s cubic-bezier(0.2, 0.8, 0.2, 1) 0.3s forwards;
+    transform: translateY(20px);
+    opacity: 0;
+    border-top: 1px solid rgba(255, 0, 0, 0.4);
+    border-bottom: 1px solid rgba(255, 0, 0, 0.4);
+    display: inline-block;
+    padding: 5px 20px;
+    background: rgba(40, 0, 0, 0.6);
+}
+
+/* === Mobile Responsive Fixes === */
+@media (max-width: 768px) {
+    .legendary-text {
+        font-size: 2em;
+        width: 100%;
+        text-align: center;
+        left: 0;
+        /* 確保不被 absolute 偏移影響 */
+    }
+
+    .effect-mythic {
+        font-size: 3em;
+        width: 100%;
+        text-align: center;
+        padding: 20px;
+        /* 減少 padding */
+    }
+
+    .effect-ultra {
+        font-size: 3em;
+        width: 100%;
+        text-align: center;
+    }
+
+    /* 調整圖示大小以免遮擋 */
+    .legendary-icon {
+        font-size: 5em;
+    }
+}
+
+/* === Mobile Optimization for Fullscreen Drop Effects Only === */
+@media (max-width: 768px) {
+
+    /* Legendary Text Mobile Override */
+    .effect-text.legendary {
+        font-size: 4rem !important;
+        position: relative !important;
+        text-shadow: 0 0 20px #ffd700, 0 0 10px black !important;
+        width: 100%;
+        display: block;
+        text-align: center;
+        letter-spacing: 5px;
+        animation: pulse-gold 0.8s infinite alternate !important;
+    }
+
+    /* Mythic Text Mobile Override */
+    /* Force the container to be fullscreen flex on mobile to center the massive text */
+    .effect-mythic {
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        width: 100% !important;
+        height: 100% !important;
+        transform: none !important;
+        /* Remove the desktop translate centering */
+        display: flex !important;
+        justify-content: center;
+        align-items: center;
+        padding: 0 !important;
+        border-radius: 0 !important;
+        background: radial-gradient(circle, rgba(0, 0, 0, 0.8) 0%, transparent 80%) !important;
+    }
+
+    .effect-text.mythic {
+        font-size: 5rem !important;
+        /* Use REM */
+        width: auto !important;
+        display: block !important;
+        text-align: center;
+        letter-spacing: 5px;
+        animation: mythic-shake-mobile 1.5s infinite !important;
+        color: #ff3300 !important;
+        text-shadow: 0 0 30px #ff0000, 0 0 10px black !important;
+    }
+
+    @keyframes mythic-shake-mobile {
+        0% {
+            transform: translate(-2px, -2px) scale(1);
+        }
+
+        50% {
+            transform: translate(2px, 2px) scale(1.05);
+        }
+
+        100% {
+            transform: translate(-2px, -2px) scale(1);
+        }
+    }
+
+    /* Ensure the container is centered (targeting ID for specificity) */
+    #legendary-effect {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        height: 100%;
+        position: fixed;
+        top: 0;
+        left: 0;
+        z-index: 2000;
+        pointer-events: none;
+    }
+}
+
+/* Boss Info Button */
+.boss-info-btn {
+    padding: 3px 10px;
+    font-size: 0.85em;
+    background: #37474f;
+    color: #eceff1;
+    border: 1px solid #546e7a;
+    border-radius: 12px;
+    cursor: pointer;
+    margin-bottom: 2px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    line-height: normal;
+}
+
+.boss-info-btn:hover {
+    background: #455a64;
+    border-color: #78909c;
+}
+
+/* Floating Modal (Popup Style) */
+.floating-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    /* Transparent overlay */
+    background: rgba(0, 0, 0, 0.4);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 30000;
+}
+
+.floating-modal .modal-container {
+    background: rgba(30, 30, 30, 0.95);
+    border: 1px solid #555;
+    border-radius: 8px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
+    width: 90%;
+    max-width: 400px;
+    /* Limit width */
+    max-height: 80vh;
+    overflow-y: auto;
+    padding: 0;
+    /* Animation */
+    animation: pop-in 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+}
+
+@keyframes pop-in {
+    0% {
+        transform: scale(0.8);
+        opacity: 0;
+    }
+
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+
+
+#boss-info-modal .modal-container {
+    max-width: 380px;
+    width: auto;
+    min-width: 300px;
+    background: #222;
+    border: 1px solid #777;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+}
