@@ -1,0 +1,378 @@
+
+ 
+
+
+
+
+
+
+
+
+
+
+
+Standalone Build
+Process Workflow
+
+This document provides a complete workflow of the process involved in Standalone Build including the Standard Build Creation for Windows, identification of roles and responsibilities, objectives, timelines, and serves as a point of reference for the group and the involved stakeholders.
+
+Build & Hardware Engineering - Workplace Services
+3/26/2025
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 
+
+
+
+Document Control
+Document Detail
+Title	Standalone Build – Process Workflow
+Version	1.0
+Date	26-03-2025
+Author/s	D, Hari Prasad
+Contributors	Build & Hardware Engineering - Workplace Services
+
+Document History
+Version	Detail/Amendment Notes	Modified by	Date
+1.0	Final Version	D, Hari Prasad	26-Mar-2025
+			
+			
+			
+			
+			
+
+
+Distribution List
+Name	Role	Reviewed	Date
+KrishnaKs, Balamurali	Product Owner, Workplace Endpoint Management & OS		
+Rao, Vijendran	AVP - MP		
+			
+			
+ 	 	 	 
+
+
+
+
+
+
+
+
+
+Table of Contents
+1	Introduction	4
+2	Objective	4
+3	Risks	4
+4	Technical controls	4
+4.1	Standalone Machine with SOE Build	4
+4.2	Standalone Machine with OEM Build	10
+5	Operational controls	16
+6	O365 Activation	16
+7	Monthly maintenance action process	16
+8	Process workflow Standalone Endpoint	17
+9	RACI Matrix	18
+10	Standalone Checklist	18
+
+ 
+
+1	Introduction
+This Document refers the Standalone Build Process. Standalone Endpoint is adherence to Group Information & Cyber Security Standard: Standalone Machine Management.
+2	Objective
+The objective of this document is to describe the process to be followed to create Standalone Build for bank.  
+3	Risks
+The Standalone Machine Management Standard mandates that adequate controls are implemented and that the Machines are protected or secured to a level equivalent to the Machines connected to the Group network. Failure to adopt and implement this Information Security Standard may expose the Machines to both data leakage and to malware resulting in:
+•	Loss of customer trust
+•	Adverse publicity and reputational damage
+•	Financial loss
+•	Regulatory fines
+4	Technical controls
+
+This section defines the security controls mandatory on the Standalone Computer. Kindly adhere to below technical control
+
+4.1	Standalone Machine with SOE Build 
+
+•	On the SOE Built Machine, Open Admin Command Prompt
+•	Uninstall Password scrambler
+•	Reset the Local Admin Password
+•	Disjoin the machine from SCB domain.
+•	Delete the NAC / All the SCB Certificate using certlm.msc command.
+•	Ensure that Standalone Machines are licensed, vendor-supported, and not obsolete.
+ 
+
+
+
+•	Ensure that relevant patches and software updates are applied during delivery of PC and monthly.
+*If the Standalone machine does not have Internet access, kindly download and install the required patches offline from official website.
+•	Enable both Audit and Event Logging.
+Goto -> gpedit.msc
+Configure below setting to enable audit log
+ 
+
+•	Disable media auto-run features.
+Goto -> gpedit.msc
+Configure below setting to Disable media auto-run
+Computer Configuration\ Policies\ Administrative Templates\Windows Components\AutoPlay Policies
+Turn off Autoplay	Disabled
+Prevent AutoPlay from remembering user choices	Disabled
+Set the default behaviour for Autorun	Disabled
+Turn off Autoplay	Disabled
+
+
+ 
+
+
+•	Enable screen time-out and lock [15 minutes].
+ 
+
+ 
+
+ 
+
+
+•	Create User specific access accounts. No shared or generic accounts are allowed for use.
+•	Create administrator specific privileged user access accounts for support team. No shared or generic accounts are allowed for use.
+Run -> Compmgmt.msc
+ 
+•	Apply password complexity for both user and privileged accounts as per Group ICS Standards.
+
+Computer Configuration\Policies\Windows Settings\Security Settings\Account Policies\Password
+Enforce password history	12 passwords remembered
+Maximum password age	90 days
+Minimum password age	1 days
+Minimum password length	8 characters
+Password must meet complexity requirements	Enabled
+Store passwords using reversible encryption	Disabled
+
+ 
+ 
+
+
+
+•	Ensure that network access and allowed traffic (to and from the Standalone Machine) is defined and controlled, with the approach and its deployment is reviewed at least every 6 months.
+•	Default Bitlocker encryption to be turned off and enable Bitlocker encryption locally.  Support team to retrieve and safely store the recovery keys for future use.
+•	Ensure only encrypted and authorized Portable Storage Devices are used for data transfers.
+•	Ensure that the machine/user certificates are deleted before handing them to user to prevent accidental connecting to SCB network.
+GoTo -> certlm.msc 
+Ensure all the certificates are removed.
+ 
+
+GoTo -> certmgr.msc 
+Ensure all the certificates are removed.
+
+ 
+ 
+
+
+
+
+•	BIOS Boot Order and Password Enablement 
+BIOS Initial Configuration.pdf 
+•	Ensure that relevant patches and software updates are applied monthly.
+*Kindly refer the control panel for latest patch information. If the Endpoint those do not have internet access, Admin should download / install the patch manually.
+•	Ensure that Standalone Machines are malware-protected with the protection mechanisms reviewed and updated monthly.
+Download MDE / Update from below link
+Latest security intelligence updates for Microsoft Defender Antivirus and other Microsoft antimalware - Microsoft Security Intelligence
+•	Disable ANONYMOUS LOGON
+Computer Configuration\Policies\Windows 
+Settings\Security Settings\Local Policies\User Rights Assignment
+Deny access to this computer from the network	ANONYMOUS LOGON, 
+Guests
+Deny log on as a batch job	ANONYMOUS LOGON, 
+Guests, Backup 
+Operators, 
+Cryptographic 
+Operators, Distributed 
+COM Users, Guests, 
+SCBAdmin, SCBGuest, 
+Everyone
+Deny log on as a service	ANONYMOUS LOGON, 
+Guests, Backup 
+Operators, 
+Cryptographic 
+Operators, Distributed 
+COM Users, Guests, 
+SCBAdmin, SCBGuest, 
+Everyone
+Deny log on locally	ANONYMOUS LOGON, 
+Guests, Backup 
+Operators, 
+Cryptographic 
+Operators, Distributed COM Users, Guests, 
+SCBAdmin, SCBGuest, 
+Everyone
+Interactive logon: Don’t display last signed-in	Enabled
+
+ 
+
+
+4.2	Standalone Machine with OEM Build
+
+•	Ensure that Standalone Machines are licensed, vendor-supported, and not obsolete.
+ 
+•	Ensure that relevant patches and software updates are applied monthly.
+*If the Standalone machine does not have Internet access, kindly download and install the required patches offline from official website.
+ 
+•	Enable both Audit and Event Logging.
+Goto -> gpedit.msc
+Configure below setting to enable audit log
+ 
+
+•	Disable media auto-run features.
+Goto -> gpedit.msc
+Configure below setting to Disable media auto-run
+Computer Configuration\ Policies\ Administrative Templates\Windows Components\AutoPlay Policies
+Turn off Autoplay	Disabled
+Prevent AutoPlay from remembering user choices	Disabled
+Set the default behaviour for Autorun	Disabled
+Turn off Autoplay	Disabled
+
+
+ 
+
+
+•	Enable screen time-out and lock [15 minutes].
+ 
+
+ 
+
+ 
+
+
+
+•	Create User specific access accounts. No shared or generic accounts are allowed for use.
+•	Ensure that administrator specific privileged user access accounts are created. No shared or generic accounts are allowed for use.
+Run -> Compmgmt.msc
+ 
+•	Apply password complexity for both user and privileged accounts as per Group ICS Standards.
+
+Computer Configuration\Policies\Windows Settings\Security Settings\Account Policies\Password
+Enforce password history	12 passwords remembered
+Maximum password age	90 days
+Minimum password age	1 days
+Minimum password length	8 characters
+Password must meet complexity requirements	Enabled
+Store passwords using reversible encryption	Disabled
+
+ 
+ 
+
+
+
+•	Ensure that network access and allowed traffic (to and from the Standalone Machine) is defined and controlled, with the approach and its deployment is reviewed at least every 6 months.
+•	Enable Bitlocker encryption locally.  Support team to retrieve and safely store the recovery keys for future use.
+•	Ensure only encrypted and authorized Portable Storage Devices are used for data transfers.
+•	Ensure that the machine certificates are deleted before handing them to user to prevent accidental connecting to SCB network.
+GoTo -> certlm.msc 
+Ensure all the certificates are removed.
+ 
+
+GoTo -> certmgr.msc 
+Ensure all the certificates are removed.
+
+ 
+ 
+
+
+
+
+•	BIOS Boot Order and Password Enablement 
+BIOS Initial Configuration.pdf 
+•	Ensure that relevant patches and software updates are applied monthly.
+*Kindly refer the control panel for latest patch information. If the Endpoint those do not have internet access, Admin should download / install the patch manually.
+•	Ensure that Standalone Machines are malware-protected with the protection mechanisms reviewed and updated (if required) at least monthly.
+Download MDE / Update from below link
+Latest security intelligence updates for Microsoft Defender Antivirus and other Microsoft antimalware - Microsoft Security Intelligence
+•	Disable ANONYMOUS LOGON
+Computer Configuration\Policies\Windows 
+Settings\Security Settings\Local Policies\User Rights Assignment
+Deny access to this computer from the network	ANONYMOUS LOGON, 
+Guests
+Deny log on as a batch job	ANONYMOUS LOGON, 
+Guests, Backup 
+Operators, 
+Cryptographic 
+Operators, Distributed 
+COM Users, Guests, 
+SCBAdmin, SCBGuest, 
+Everyone
+Deny log on as a service	ANONYMOUS LOGON, 
+Guests, Backup 
+Operators, 
+Cryptographic 
+Operators, Distributed 
+COM Users, Guests, 
+SCBAdmin, SCBGuest, 
+Everyone
+Deny log on locally	ANONYMOUS LOGON, 
+Guests, Backup 
+Operators, 
+Cryptographic 
+Operators, Distributed COM Users, Guests, 
+SCBAdmin, SCBGuest, 
+Everyone
+Interactive logon: Don’t display last signed-in	Enabled
+
+ 
+
+5	Operational controls
+
+This section defines the mandatory guidelines, do’s and don’ts on the Standalone Computer.
+•	Do not download, upload, or install any content that is unrelated to the machine's intended use.
+•	Install only licensed third-party software that has been approved by the group.
+•	Assure the onboarding of standalone machines into the Group's centralized IT inventory and the current management of the data.
+•	Access is recertified through a biannual access review process.
+•	Only those with permission can access privileged accounts. 
+
+6	O365 Activation
+
+O365 Activation for SOE / Non-SOE – Get in touch with O365 license team and obtain new standalone license.
+Note: Standalone machine shouldn’t use the existing user production license. 
+7	Monthly maintenance action process
+Being isolated from domain, Standalone Computer is not discovered by in Active Directory or by MECM \ Intune. To keep track and ensure Technical Controls and Operational Controls are adhered, it is recommended to establish monthly maintenance action on the Standalone Computer. Standalone Owner should submit SRM and Support Team verify the monthly checklist.
+ 
+
+8	Process workflow Standalone Endpoint
+
+ 
+
+
+ 
+
+
+9	RACI Matrix
+
+RACI (R-Responsible A-Accountable C-Consulted I-Informed)
+
+       Activities                                                              Roles	Standalone Machine Custodian / Owner	ESS / OTS / FM	Heads of ICS (HICS)	Group Chief Information Security Risk Office (CISRO)
+Standalone Request	A-R	I	 	 
+CISRO Approval	A	I	 	 R
+HICS Approval	A	I	R	 
+OS Installation	I	A-R	 	 
+Technical Control	I	A-R		
+OS Configuration	I	A-R	 	 
+Monthly Maintenance	R	A	 	 
+Monthly Maintenance SRM	A-R	I 		
+Creating CRISP	A-R	I	 	 
+CRISP Renewal	A-R	I	 	 
+Hardware Renewal / Surrender	A-R	I	 	 
+10	Standalone Checklist
+Please use the below test case for standalone testing
+Standalone_Checklist.xlsx
+
+
+
+
